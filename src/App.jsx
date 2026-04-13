@@ -95,19 +95,18 @@ function Hero() {
 
     function lerp(a, b, t) { return a + (b - a) * t }
     function tick() {
-      if (isVisible.current) {
-        const c = currentRef.current
-        const t = targetRef.current
-        const next = {
-          r: lerp(c.r, t.r, 0.04),
-          g: lerp(c.g, t.g, 0.04),
-          b: lerp(c.b, t.b, 0.04),
-        }
-        currentRef.current = next
-        frameCount++
-        if (frameCount % 3 === 0 && heroRef.current) {
-          heroRef.current.style.background = computeGradient(next.r, next.g, next.b)
-        }
+      if (!isVisible.current) { rafId = null; return }
+      const c = currentRef.current
+      const t = targetRef.current
+      const next = {
+        r: lerp(c.r, t.r, 0.04),
+        g: lerp(c.g, t.g, 0.04),
+        b: lerp(c.b, t.b, 0.04),
+      }
+      currentRef.current = next
+      frameCount++
+      if (frameCount % 3 === 0 && heroRef.current) {
+        heroRef.current.style.background = computeGradient(next.r, next.g, next.b)
       }
       rafId = requestAnimationFrame(tick)
     }
@@ -115,9 +114,11 @@ function Hero() {
     const observer = new IntersectionObserver(([entry]) => {
       isVisible.current = entry.isIntersecting
       const v = videoRef.current
-      if (v) {
-        if (entry.isIntersecting) v.play().catch(() => {})
-        else v.pause()
+      if (entry.isIntersecting) {
+        if (v) v.play().catch(() => {})
+        if (!rafId) rafId = requestAnimationFrame(tick)
+      } else {
+        if (v) v.pause()
       }
     }, { threshold: 0.1 })
     if (heroRef.current) observer.observe(heroRef.current)

@@ -61,6 +61,7 @@ function FrameComponent({
               loop
               muted
               playsInline
+              preload="none"
               ref={videoRef}
             />
           </div>

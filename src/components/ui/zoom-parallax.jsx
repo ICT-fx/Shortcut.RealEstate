@@ -27,7 +27,7 @@ export function ZoomParallax({ images = [] }) {
           return (
             <motion.div
               key={index}
-              style={{ scale }}
+              style={{ scale, willChange: 'transform' }}
               className={`absolute top-0 flex h-full w-full items-center justify-center
                 ${index === 1 ? '[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]' : ''}
                 ${index === 2 ? '[&>div]:!-top-[10vh] [&>div]:!-left-[25vw] [&>div]:!h-[45vh] [&>div]:!w-[20vw]' : ''}
@@ -42,6 +42,7 @@ export function ZoomParallax({ images = [] }) {
                   src={src || '/placeholder.svg'}
                   alt={alt || `Parallax image ${index + 1}`}
                   className="h-full w-full object-cover"
+                  loading="lazy"
                 />
               </div>
             </motion.div>
