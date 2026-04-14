@@ -569,28 +569,32 @@ function Services() {
 ───────────────────────────────────────── */
 const PARALLAX_IMAGES = [
   {
-    src: '/Photos%20animation%20/61a0429f-6585-497c-a0f7-24c7743f8582.png',
-    alt: 'Increase your bookings instantly',
+    src: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
+    alt: 'Modern architecture building',
   },
   {
-    src: '/Photos%20animation%20/Design%20sans%20titre%20(1).png',
-    alt: 'Turn views into real bookings',
+    src: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
+    alt: 'Urban cityscape at sunset',
   },
   {
-    src: '/Photos%20animation%20/Design%20sans%20titre.png',
-    alt: 'Sell your property faster',
+    src: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&h=800&fit=crop&crop=entropy&auto=format&q=80',
+    alt: 'Abstract geometric pattern',
   },
   {
-    src: '/Photos%20animation%20/Design%20sans%20titre%20(2).png',
-    alt: 'Make your property look 10x more attractive',
+    src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
+    alt: 'Mountain landscape',
   },
   {
-    src: '/Photos%20animation%20/Gemini_Generated_Image_c9qmn7c9qmn7c9qm%20(2)%20-%20Modifi%C3%A9.png',
-    alt: 'Increase your property perceived value',
+    src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=800&fit=crop&crop=entropy&auto=format&q=80',
+    alt: 'Minimalist design elements',
   },
   {
-    src: '/Photos%20animation%20/Design%20sans%20titre%20(5).png',
-    alt: 'Stand out in crowded platforms',
+    src: 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
+    alt: 'Ocean waves and beach',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
+    alt: 'Forest trees and sunlight',
   },
 ]
 
