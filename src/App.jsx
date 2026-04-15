@@ -567,34 +567,33 @@ function Services() {
 /* ─────────────────────────────────────────
    ZOOM PARALLAX DEMO
 ───────────────────────────────────────── */
+const photo = (name) => encodeURI(`/Photos animation /${name}`)
+
 const PARALLAX_IMAGES = [
+  { src: '', alt: '' }, // slot 0 — remplacé par le canvas vidéo
   {
-    src: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
-    alt: 'Modern architecture building',
+    src: photo('Make your property look 10x more attractive.png'),
+    alt: 'Property photography',
   },
   {
-    src: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
-    alt: 'Urban cityscape at sunset',
+    src: photo('Increase your bookings instantly.png'),
+    alt: 'Property bookings',
   },
   {
-    src: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&h=800&fit=crop&crop=entropy&auto=format&q=80',
-    alt: 'Abstract geometric pattern',
+    src: photo('Turn views into real bookings.png'),
+    alt: 'Convert views to bookings',
   },
   {
-    src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
-    alt: 'Mountain landscape',
+    src: photo('Sell your property faster.png'),
+    alt: 'Sell property faster',
   },
   {
-    src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=800&fit=crop&crop=entropy&auto=format&q=80',
-    alt: 'Minimalist design elements',
+    src: photo('Stand out in crowded platforms.png'),
+    alt: 'Stand out online',
   },
   {
-    src: 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
-    alt: 'Ocean waves and beach',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1280&h=720&fit=crop&crop=entropy&auto=format&q=80',
-    alt: 'Forest trees and sunlight',
+    src: photo("Increase your property\u2019s perceived value.png"),
+    alt: 'Property perceived value',
   },
 ]
 
