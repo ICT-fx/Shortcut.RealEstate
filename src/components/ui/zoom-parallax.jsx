@@ -107,12 +107,12 @@ export function ZoomParallax({ images = [] }) {
     offset: ['start start', 'end end'],
   });
 
-  const scale4 = useTransform(scrollYProgress, [0, 1], [1, 4]);
-  const scale5 = useTransform(scrollYProgress, [0, 1], [1, 5]);
-  const scale6 = useTransform(scrollYProgress, [0, 1], [1, 6]);
-  const scale8 = useTransform(scrollYProgress, [0, 1], [1, 8]);
-  const scale9 = useTransform(scrollYProgress, [0, 1], [1, 9]);
-  const canvasBorderRadius = useTransform(scrollYProgress, [0, 0.85], ['16px', '0px']);
+  const scale4 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 4]);
+  const scale5 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 5]);
+  const scale6 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 6]);
+  const scale8 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 8]);
+  const scale9 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 9]);
+  const canvasBorderRadius = useTransform(scrollYProgress, [0.2, 0.9], ['16px', '0px']);
 
   const surroundingScales = [scale5, scale6, scale5, scale6, scale8, scale9];
 
