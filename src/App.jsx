@@ -320,7 +320,7 @@ const BELIEF_BULLETS = [
 
 function Targets() {
   return (
-    <section id="services" className="py-28 relative overflow-hidden" style={{ background: '#FAFAFA' }}>
+    <section id="services" className="pt-28 pb-10 relative overflow-hidden" style={{ background: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-20">
 
@@ -446,8 +446,8 @@ const COMPARISON_RIGHT = [
 
 function Services() {
   return (
-    <section className="py-24 relative" style={{ background: '#FAFAFA' }}>
-      <div className="max-w-4xl mx-auto px-6">
+    <section className="pt-10 pb-24 relative" style={{ background: '#FAFAFA' }}>
+      <div className="max-w-5xl mx-auto px-6">
 
         {/* ── Header centré ── */}
         <FadeIn className="text-center mb-14">
@@ -458,29 +458,28 @@ function Services() {
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             ))}
-            <span className="font-sans text-sm font-medium ml-1" style={{ color: '#6845EC', letterSpacing: '-0.03em' }}>
+            <span className="font-sans text-base font-medium ml-1" style={{ color: '#6845EC', letterSpacing: '-0.03em' }}>
               +1,000 – 5 star reviews
             </span>
           </div>
 
           {/* Titre */}
           <h2
-            className="font-sans font-black mb-4"
+            className="font-sans font-bold mb-4"
             style={{
-              fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
-              color: '#0D0D0D',
+              fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)',
+              color: '#111827',
               letterSpacing: '-0.05em',
-              lineHeight: '1.05',
-              fontFamily: 'Inter, sans-serif',
+              lineHeight: '1.2',
             }}
           >
-            From invisible to high-demand,<br />in 48 hours.
+            From invisible to high-demand, in 48 hours.
           </h2>
 
           {/* Sous-titre */}
           <p
-            className="font-sans"
-            style={{ fontSize: '1rem', color: 'rgba(17,24,39,0.5)', letterSpacing: '-0.03em', lineHeight: '1.5' }}
+            className="font-sans font-medium"
+            style={{ fontSize: '1.5rem', color: 'rgba(17,24,39,0.65)', letterSpacing: '-0.03em', lineHeight: '1.5', marginTop: '1rem' }}
           >
             Your property deserves attention. We make sure it gets it.
           </p>
@@ -494,28 +493,28 @@ function Services() {
             <div className="pr-8 md:pr-14">
               <h3
                 className="font-sans font-bold mb-6"
-                style={{ fontSize: '1.25rem', color: '#0D0D0D', letterSpacing: '-0.04em' }}
+                style={{ fontSize: '1.75rem', color: '#111827', letterSpacing: '-0.04em' }}
               >
                 Traditional approach
               </h3>
               {COMPARISON_LEFT.map((item, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 py-4"
+                  className="flex items-center gap-3 py-5"
                   style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}
                 >
                   {/* Icône X grise */}
                   <div
-                    className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
+                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
                     style={{ background: 'rgba(0,0,0,0.07)' }}
                   >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
                       <path d="M2 2l6 6M8 2l-6 6" stroke="rgba(0,0,0,0.35)" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   </div>
                   <span
-                    className="font-sans"
-                    style={{ fontSize: '0.95rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em' }}
+                    className="font-sans font-medium"
+                    style={{ fontSize: '1.25rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em' }}
                   >
                     {item}
                   </span>
@@ -527,28 +526,28 @@ function Services() {
             <div className="pl-8 md:pl-14" style={{ borderLeft: '1px solid rgba(0,0,0,0.08)' }}>
               <h3
                 className="font-sans font-bold mb-6"
-                style={{ fontSize: '1.25rem', color: '#0D0D0D', letterSpacing: '-0.04em' }}
+                style={{ fontSize: '1.75rem', color: '#111827', letterSpacing: '-0.04em' }}
               >
                 Shortcut
               </h3>
               {COMPARISON_RIGHT.map((item, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 py-4"
+                  className="flex items-center gap-3 py-5"
                   style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}
                 >
                   {/* Icône violette */}
                   <div
-                    className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
+                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
                     style={{ background: '#6845EC' }}
                   >
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <svg width="13" height="13" viewBox="0 0 11 11" fill="none">
                       <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                   <span
-                    className="font-sans font-medium"
-                    style={{ fontSize: '0.95rem', color: '#0D0D0D', letterSpacing: '-0.03em' }}
+                    className="font-sans font-semibold"
+                    style={{ fontSize: '1.25rem', color: '#111827', letterSpacing: '-0.03em' }}
                   >
                     {item}
                   </span>
@@ -601,7 +600,6 @@ function ZoomParallaxSection() {
   return (
     <section className="relative w-full" style={{ background: '#FAFAFA' }}>
       <ZoomParallax images={PARALLAX_IMAGES} />
-      <div className="h-[20vh]" />
     </section>
   )
 }

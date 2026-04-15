@@ -107,12 +107,12 @@ export function ZoomParallax({ images = [] }) {
     offset: ['start start', 'end end'],
   });
 
-  const scale4 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 4]);
-  const scale5 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 5]);
-  const scale6 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 6]);
-  const scale8 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 8]);
-  const scale9 = useTransform(scrollYProgress, [0, 0.2, 1], [1, 1, 9]);
-  const canvasBorderRadius = useTransform(scrollYProgress, [0.2, 0.9], ['16px', '0px']);
+  const scale4 = useTransform(scrollYProgress, [0, 1], [1, 4]);
+  const scale5 = useTransform(scrollYProgress, [0, 1], [1, 5]);
+  const scale6 = useTransform(scrollYProgress, [0, 1], [1, 6]);
+  const scale8 = useTransform(scrollYProgress, [0, 1], [1, 8]);
+  const scale9 = useTransform(scrollYProgress, [0, 1], [1, 9]);
+  const canvasBorderRadius = useTransform(scrollYProgress, [0, 0.9], ['16px', '0px']);
 
   const surroundingScales = [scale5, scale6, scale5, scale6, scale8, scale9];
 
@@ -191,7 +191,7 @@ export function ZoomParallax({ images = [] }) {
                 ${i === 2 ? '[&>div]:!left-[27.5vw] [&>div]:!h-[25vh] [&>div]:!w-[25vw]' : ''}
                 ${i === 3 ? '[&>div]:!top-[34vh] [&>div]:!left-[5vw] [&>div]:!h-[25vh] [&>div]:!w-[20vw]' : ''}
                 ${i === 4 ? '[&>div]:!top-[34vh] [&>div]:!-left-[22.5vw] [&>div]:!h-[25vh] [&>div]:!w-[30vw]' : ''}
-                ${i === 5 ? '[&>div]:!top-[34vh] [&>div]:!left-[28vw] [&>div]:!h-[25vh] [&>div]:!w-[24vw]' : ''}
+                ${i === 5 ? '[&>div]:!top-[33.5vh] [&>div]:!left-[30vw] [&>div]:!h-[21vh] [&>div]:!w-[28vw] [&>div>img]:!object-bottom' : ''}
               `}
             >
               <div className="relative h-[25vh] w-[25vw] overflow-hidden rounded-xl">
