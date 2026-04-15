@@ -112,6 +112,7 @@ export function ZoomParallax({ images = [] }) {
   const scale6 = useTransform(scrollYProgress, [0, 1], [1, 6]);
   const scale8 = useTransform(scrollYProgress, [0, 1], [1, 8]);
   const scale9 = useTransform(scrollYProgress, [0, 1], [1, 9]);
+  const canvasBorderRadius = useTransform(scrollYProgress, [0, 0.85], ['16px', '0px']);
 
   const surroundingScales = [scale5, scale6, scale5, scale6, scale8, scale9];
 
@@ -163,14 +164,17 @@ export function ZoomParallax({ images = [] }) {
           style={{ scale: scale4, willChange: 'transform' }}
           className="absolute top-0 flex h-full w-full items-center justify-center"
         >
-          <div className="relative h-[25vh] w-[25vw]">
+          <motion.div
+            className="relative h-[25vh] w-[25vw] overflow-hidden"
+            style={{ borderRadius: canvasBorderRadius }}
+          >
             <canvas
               ref={canvasRef}
               width={640}
               height={360}
               style={{ width: '100%', height: '100%', display: 'block' }}
             />
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* ── Surrounding images + labels ── */}
@@ -190,7 +194,7 @@ export function ZoomParallax({ images = [] }) {
                 ${i === 5 ? '[&>div]:!top-[34vh] [&>div]:!left-[28vw] [&>div]:!h-[25vh] [&>div]:!w-[24vw]' : ''}
               `}
             >
-              <div className="relative h-[25vh] w-[25vw]">
+              <div className="relative h-[25vh] w-[25vw] overflow-hidden rounded-xl">
                 <img
                   src={src || '/placeholder.svg'}
                   alt={alt || `Image ${i + 2}`}
