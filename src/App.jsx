@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Zap, Scissors, Layers, Palette, Clock,
-  Star, Check, ArrowRight, Film,
+  Star, Check, ArrowRight, ArrowLeft, Film,
   Building2, Home, Users, TrendingUp, Award,
   Upload, RefreshCw, Rocket,
   Instagram, Twitter, Youtube, Linkedin,
   BarChart2, Globe, Clapperboard,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import useEmblaCarousel from 'embla-carousel-react'
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import { ContainerScroll } from './components/ui/container-scroll-animation'
-import { DynamicFrameLayout } from './components/ui/dynamic-frame-layout'
 import { ZoomParallax } from './components/ui/zoom-parallax'
+import { TestimonialsColumn } from './components/ui/testimonials-columns'
 
 /* ─────────────────────────────────────────
    UTILITIES
@@ -383,18 +385,15 @@ function Targets() {
               >
                 Before
               </span>
-              <div
-                className="rounded-2xl flex flex-col items-center justify-center gap-4"
-                style={{
-                  width: '280px',
-                  height: '500px',
-                  background: '#E0E0E0',
-                  border: '1px solid rgba(0,0,0,0.1)',
-                }}
-              >
-                <Film size={44} style={{ color: 'rgba(17,24,39,0.25)' }} />
-                <span className="font-sans text-base" style={{ color: 'rgba(17,24,39,0.4)' }}>Your raw footage</span>
-              </div>
+              <video
+                src={encodeURI('/video avant apres/Avant.mp4')}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="rounded-2xl object-cover"
+                style={{ width: '280px', height: '500px' }}
+              />
             </div>
 
             {/* After */}
@@ -405,19 +404,15 @@ function Targets() {
               >
                 After
               </span>
-              <div
-                className="rounded-2xl flex flex-col items-center justify-center gap-4"
-                style={{
-                  width: '280px',
-                  height: '500px',
-                  background: 'rgba(104,69,236,0.05)',
-                  border: '2px solid #6845EC',
-                  boxShadow: '0 0 60px rgba(104,69,236,0.25), inset 0 0 50px rgba(104,69,236,0.06)',
-                }}
-              >
-                <Clapperboard size={44} style={{ color: '#6845EC' }} />
-                <span className="font-sans text-base font-semibold" style={{ color: '#6845EC' }}>Premium edit</span>
-              </div>
+              <video
+                src={encodeURI('/video avant apres/Après.mp4'.normalize('NFD'))}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="rounded-2xl object-cover"
+                style={{ width: '280px', height: '500px', border: '2px solid #6845EC', boxShadow: '0 0 60px rgba(104,69,236,0.25)' }}
+              />
             </div>
           </FadeIn>
 
@@ -446,7 +441,7 @@ const COMPARISON_RIGHT = [
 
 function Services() {
   return (
-    <section className="pt-10 pb-24 relative" style={{ background: '#FAFAFA' }}>
+    <section className="pt-24 pb-24 relative" style={{ background: '#FAFAFA' }}>
       <div className="max-w-5xl mx-auto px-6">
 
         {/* ── Header centré ── */}
@@ -557,6 +552,183 @@ function Services() {
 
           </div>
         </FadeIn>
+
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────
+   VALUE PROPS
+───────────────────────────────────────── */
+function VideoPlaceholder({ aspect = '16/9', label = 'Vidéo à venir' }) {
+  const isVertical = aspect === '9/16'
+  return (
+    <div
+      className="relative flex items-center justify-center overflow-hidden rounded-2xl w-full"
+      style={{
+        aspectRatio: aspect,
+        background: 'rgba(17,24,39,0.06)',
+        maxWidth: isVertical ? 280 : '100%',
+      }}
+    >
+      {/* Play button */}
+      <div
+        className="flex flex-col items-center gap-3"
+        style={{ color: 'rgba(17,24,39,0.25)' }}
+      >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{ width: 64, height: 64, background: 'rgba(17,24,39,0.08)' }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="rgba(17,24,39,0.35)">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
+        <span className="font-sans text-sm" style={{ letterSpacing: '-0.02em' }}>{label}</span>
+      </div>
+    </div>
+  )
+}
+
+const slideIn = (dir, delay = 0) => ({
+  initial: { opacity: 0, x: dir === 'left' ? -90 : 90 },
+  whileInView: { opacity: 1, x: 0 },
+  viewport: { once: true, amount: 0.25 },
+  transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: delay / 1000 },
+})
+
+const popIn = (delay = 0) => ({
+  initial: { opacity: 0, scale: 0.7 },
+  whileInView: { opacity: 1, scale: 1 },
+  viewport: { once: true, amount: 0.5 },
+  transition: { duration: 0.55, ease: [0.34, 1.56, 0.64, 1], delay: delay / 1000 },
+})
+
+const gradientText = {
+  backgroundImage: 'linear-gradient(135deg, #6845EC 0%, #9B6FFF 100%)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+}
+
+function ValueProps() {
+  return (
+    <section className="py-28" style={{ background: '#FAFAFA' }}>
+      <div className="max-w-7xl mx-auto px-6 flex flex-col gap-36">
+
+        {/* ── Row 1 — Texte depuis gauche, vidéo depuis droite ── */}
+        <div className="grid grid-cols-12 gap-16 items-center">
+          <motion.div className="col-span-12 md:col-span-5 flex flex-col gap-6" {...slideIn('left')}>
+            <h3
+              className="font-sans font-bold"
+              style={{ fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}
+            >
+              Increase the perceived{' '}
+              <span style={gradientText}>value</span>{' '}
+              of your property
+            </h3>
+            <p
+              className="font-sans"
+              style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}
+            >
+              The way your property is presented directly impacts how much it's worth in the eyes of clients.
+            </p>
+          </motion.div>
+          <motion.div className="col-span-12 md:col-span-7" {...slideIn('right', 120)}>
+            <VideoPlaceholder aspect="16/9" />
+          </motion.div>
+        </div>
+
+        {/* ── Row 2 — Vidéo depuis gauche, texte depuis droite ── */}
+        <div className="grid grid-cols-12 gap-16 items-center">
+          <motion.div className="col-span-12 md:col-span-3 flex justify-center md:justify-start" {...slideIn('left')}>
+            <VideoPlaceholder aspect="9/16" label="Vidéo réseaux sociaux" />
+          </motion.div>
+          <motion.div className="col-span-12 md:col-span-9 flex flex-col gap-6" {...slideIn('right', 120)}>
+            <h3
+              className="font-sans font-bold"
+              style={{ fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}
+            >
+              Turn{' '}
+              <span style={gradientText}>attention</span>{' '}
+              into real bookings
+            </h3>
+            <p
+              className="font-sans"
+              style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}
+            >
+              Views don't matter if they don't convert.{' '}
+              We create videos designed to make people{' '}
+              <span className="font-semibold" style={{ color: '#111827' }}>click, book, and act.</span>
+            </p>
+          </motion.div>
+        </div>
+
+        {/* ── Row 3 — Texte depuis gauche, vidéo depuis droite ── */}
+        <div className="grid grid-cols-12 gap-16 items-center">
+          <motion.div className="col-span-12 md:col-span-5 flex flex-col gap-6" {...slideIn('left')}>
+            <h3
+              className="font-sans font-bold"
+              style={{ fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}
+            >
+              Sell and rent{' '}
+              <span style={gradientText}>faster</span>
+            </h3>
+            <p
+              className="font-sans"
+              style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}
+            >
+              The more attractive your property is, the faster it gets attention and results.
+            </p>
+            <p className="font-sans" style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}>
+              With our videos, sell your property around{' '}
+              <motion.span
+                className="font-black"
+                style={{ color: '#6845EC', fontSize: '1.55rem', letterSpacing: '-0.05em' }}
+                {...popIn(200)}
+              >
+                30%
+              </motion.span>{' '}
+              faster and attract{' '}
+              <motion.span
+                className="font-black"
+                style={{ color: '#6845EC', fontSize: '1.55rem', letterSpacing: '-0.05em' }}
+                {...popIn(380)}
+              >
+                40–50%
+              </motion.span>{' '}
+              more potential renters.
+            </p>
+          </motion.div>
+          <motion.div className="col-span-12 md:col-span-7" {...slideIn('right', 120)}>
+            <VideoPlaceholder aspect="16/9" />
+          </motion.div>
+        </div>
+
+        {/* ── Enter a new way... ── */}
+        <div className="text-center py-8 flex flex-col items-center gap-3">
+          <motion.p
+            className="font-display"
+            style={{ fontSize: 'clamp(5rem, 12vw, 10rem)', color: '#111827', letterSpacing: '-0.04em', lineHeight: 1 }}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          >
+            ENT<span style={gradientText}>ER</span>
+          </motion.p>
+          <motion.p
+            className="font-display"
+            style={{ fontSize: 'clamp(2.4rem, 5.5vw, 5rem)', color: '#111827', letterSpacing: '-0.04em', lineHeight: 1.1 }}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
+          >
+            A NEW WAY OF SELLING YOUR PROPERTY
+          </motion.p>
+        </div>
 
       </div>
     </section>
@@ -775,15 +947,122 @@ function WhyUs() {
 /* ─────────────────────────────────────────
    PORTFOLIO
 ───────────────────────────────────────── */
-const PORTFOLIO_FRAMES = [
-  { id: 1, video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Logo%20Exported.mp4', defaultPos: { x: 0, y: 0, w: 4, h: 4 }, mediaSize: 1, isHovered: false },
-  { id: 2, video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Animation%20Exported%20(4).mp4', defaultPos: { x: 4, y: 0, w: 4, h: 4 }, mediaSize: 1, isHovered: false },
-  { id: 3, video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Illustration%20Exported%20(1).mp4', defaultPos: { x: 8, y: 0, w: 4, h: 4 }, mediaSize: 1, isHovered: false },
-  { id: 4, video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Art%20Direction%20Exported.mp4', defaultPos: { x: 0, y: 4, w: 4, h: 4 }, mediaSize: 1, isHovered: false },
-  { id: 5, video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Product%20Video.mp4', defaultPos: { x: 4, y: 4, w: 4, h: 4 }, mediaSize: 1, isHovered: false },
+const PORTFOLIO_ITEMS = [
+  {
+    id: 1,
+    title: 'Luxury Villa — Dubai',
+    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Logo%20Exported.mp4',
+  },
+  {
+    id: 2,
+    title: 'Modern Penthouse — Paris',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Animation%20Exported%20(4).mp4',
+  },
+  {
+    id: 3,
+    title: 'Seaside Retreat — Côte d\'Azur',
+    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Illustration%20Exported%20(1).mp4',
+  },
+  {
+    id: 4,
+    title: 'Contemporary Loft — London',
+    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Art%20Direction%20Exported.mp4',
+  },
+  {
+    id: 5,
+    title: 'Exclusive Estate — Miami',
+    image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Product%20Video.mp4',
+  },
 ]
 
+function PortfolioCard({ item }) {
+  const videoRef = useRef(null)
+  const [hovered, setHovered] = useState(false)
+
+  const handleEnter = () => {
+    setHovered(true)
+    videoRef.current?.play()
+  }
+  const handleLeave = () => {
+    setHovered(false)
+    if (videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+  }
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl"
+      style={{ width: 'min(300px, 80vw)', height: 'min(420px, 112vw)', cursor: 'pointer', userSelect: 'none' }}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
+      {/* Image statique */}
+      <img
+        src={item.image}
+        alt={item.title}
+        className="absolute inset-0 w-full h-full object-cover"
+        draggable={false}
+      />
+      {/* Vidéo au hover */}
+      <video
+        ref={videoRef}
+        src={item.video}
+        muted
+        loop
+        playsInline
+        preload="none"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ opacity: hovered ? 1 : 0, transition: 'opacity 0.35s ease' }}
+      />
+      {/* Overlay gradient + titre (disparaît au hover) */}
+      <div
+        className="absolute inset-0 flex flex-col justify-end p-6"
+        style={{
+          background: 'linear-gradient(to top, rgba(7,7,15,0.88) 0%, rgba(7,7,15,0.18) 55%, transparent 100%)',
+          opacity: hovered ? 0 : 1,
+          transition: 'opacity 0.35s ease',
+          pointerEvents: 'none',
+        }}
+      >
+        <h3
+          className="font-sans font-bold text-white text-lg leading-tight"
+          style={{ letterSpacing: '-0.04em' }}
+        >
+          {item.title}
+        </h3>
+      </div>
+    </div>
+  )
+}
+
 function Portfolio() {
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { align: 'start', dragFree: true },
+    [WheelGesturesPlugin()]
+  )
+  const [canPrev, setCanPrev] = useState(false)
+  const [canNext, setCanNext] = useState(false)
+  const [current, setCurrent] = useState(0)
+
+  useEffect(() => {
+    if (!emblaApi) return
+    const update = () => {
+      setCanPrev(emblaApi.canScrollPrev())
+      setCanNext(emblaApi.canScrollNext())
+      setCurrent(emblaApi.selectedScrollSnap())
+    }
+    update()
+    emblaApi.on('select', update)
+    return () => emblaApi.off('select', update)
+  }, [emblaApi])
+
   return (
     <section id="portfolio" className="py-28" style={{ background: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto px-6">
@@ -794,19 +1073,297 @@ function Portfolio() {
               PORTFOLIO
             </h2>
           </div>
-          <a href="#contact" className="btn-secondary shrink-0 self-start md:self-auto">
-            Work with us <ArrowRight size={14} />
-          </a>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => emblaApi?.scrollPrev()}
+              disabled={!canPrev}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+              style={{
+                border: `1.5px solid ${canPrev ? '#6845EC' : 'rgba(0,0,0,0.15)'}`,
+                color: canPrev ? '#6845EC' : 'rgba(0,0,0,0.25)',
+                background: 'transparent',
+                cursor: canPrev ? 'pointer' : 'default',
+              }}
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <button
+              onClick={() => emblaApi?.scrollNext()}
+              disabled={!canNext}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+              style={{
+                border: `1.5px solid ${canNext ? '#6845EC' : 'rgba(0,0,0,0.15)'}`,
+                color: canNext ? '#6845EC' : 'rgba(0,0,0,0.25)',
+                background: 'transparent',
+                cursor: canNext ? 'pointer' : 'default',
+              }}
+            >
+              <ArrowRight size={16} />
+            </button>
+          </div>
         </FadeIn>
+      </div>
 
-        <div style={{ height: '75vh' }}>
-          <DynamicFrameLayout
-            frames={PORTFOLIO_FRAMES}
-            className="rounded-xl overflow-hidden"
-            hoverSize={6}
-            gapSize={4}
-          />
+      {/* Carousel pleine largeur */}
+      <div ref={emblaRef} className="overflow-hidden">
+        <div
+          className="flex gap-4"
+          style={{ paddingLeft: 'max(1rem, calc(50vw - 42rem))', paddingRight: '1rem' }}
+        >
+          {PORTFOLIO_ITEMS.map(item => (
+            <div key={item.id} className="shrink-0">
+              <PortfolioCard item={item} />
+            </div>
+          ))}
         </div>
+      </div>
+
+      {/* Dots */}
+      <div className="mt-8 flex justify-center gap-2">
+        {PORTFOLIO_ITEMS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => emblaApi?.scrollTo(i)}
+            style={{
+              width: '8px', height: '8px', borderRadius: '50%', border: 'none',
+              background: current === i ? '#6845EC' : 'rgba(104,69,236,0.2)',
+              cursor: 'pointer', padding: 0, transition: 'background 0.25s',
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────
+   HOW IT WORKS (detailed)
+───────────────────────────────────────── */
+
+/* — Visual mockups built in JSX — */
+function StepVisual1() {
+  return (
+    <div className="relative w-full rounded-3xl overflow-hidden flex items-center justify-center p-10"
+      style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #f0edff 0%, #e8f4ff 100%)' }}>
+      {/* Decorative blobs */}
+      <div className="absolute w-48 h-48 rounded-full" style={{ background: 'rgba(104,69,236,0.12)', top: '-40px', right: '-40px' }} />
+      <div className="absolute w-32 h-32 rounded-full" style={{ background: 'rgba(6,182,212,0.1)', bottom: '-20px', left: '-20px' }} />
+
+      {/* Form card mockup */}
+      <div className="relative z-10 w-full max-w-xs flex flex-col gap-3"
+        style={{ background: '#fff', borderRadius: 20, padding: '28px 24px', boxShadow: '0 20px 60px rgba(104,69,236,0.15)' }}>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-5 h-5 rounded" style={{ background: '#6845EC' }}>
+            <svg viewBox="0 0 20 20" fill="white" width="20" height="20"><path d="M3 4h14v2H3zm0 5h14v2H3zm0 5h8v2H3z"/></svg>
+          </div>
+          <span className="font-sans font-bold text-sm" style={{ color: '#111827', letterSpacing: '-0.03em' }}>Your property brief</span>
+        </div>
+        {['Property type', 'Target audience', 'Key highlights', 'Tone & style'].map((label, i) => (
+          <div key={i}>
+            <div className="text-xs mb-1 font-sans" style={{ color: 'rgba(17,24,39,0.4)', letterSpacing: '-0.02em' }}>{label}</div>
+            <div className="rounded-lg h-9 px-3 flex items-center" style={{ background: '#F7F7FA', border: '1px solid rgba(0,0,0,0.07)' }}>
+              {i === 0 && <span className="font-sans text-sm" style={{ color: '#111827', letterSpacing: '-0.02em' }}>Luxury apartment</span>}
+              {i === 1 && <span className="font-sans text-sm" style={{ color: '#111827', letterSpacing: '-0.02em' }}>Young professionals</span>}
+              {i > 1 && <div className="h-2 rounded-full w-3/4" style={{ background: 'rgba(17,24,39,0.08)' }} />}
+            </div>
+          </div>
+        ))}
+        <div className="mt-2 rounded-xl py-3 text-center font-sans font-semibold text-sm text-white"
+          style={{ background: '#6845EC', letterSpacing: '-0.02em' }}>
+          Submit brief →
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StepVisual2() {
+  const tracks = [
+    { label: 'Video', color: '#6845EC', w: '78%' },
+    { label: 'Music', color: '#06B6D4', w: '85%' },
+    { label: 'Color', color: '#F59E0B', w: '60%' },
+    { label: 'Text', color: '#2D4077', w: '45%' },
+  ]
+  return (
+    <div className="relative w-full rounded-3xl overflow-hidden flex flex-col justify-between p-8"
+      style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1030 100%)' }}>
+      <div className="absolute w-64 h-64 rounded-full" style={{ background: 'rgba(104,69,236,0.18)', top: '-60px', left: '-60px', filter: 'blur(40px)' }} />
+      <div className="absolute w-40 h-40 rounded-full" style={{ background: 'rgba(6,182,212,0.12)', bottom: '-30px', right: '-30px', filter: 'blur(30px)' }} />
+
+      {/* Preview thumbnail */}
+      <div className="relative z-10 rounded-2xl overflow-hidden flex items-center justify-center"
+        style={{ aspectRatio: '16/9', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', marginBottom: 20 }}>
+        <div className="flex items-center justify-center w-12 h-12 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div className="absolute bottom-2 right-3 font-sans text-xs font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>0:47</div>
+      </div>
+
+      {/* Timeline tracks */}
+      <div className="relative z-10 flex flex-col gap-2">
+        {tracks.map((t) => (
+          <div key={t.label} className="flex items-center gap-3">
+            <span className="font-sans text-xs w-10 shrink-0" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '-0.02em' }}>{t.label}</span>
+            <div className="flex-1 h-5 rounded-md" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div className="h-full rounded-md" style={{ width: t.w, background: t.color, opacity: 0.7 }} />
+            </div>
+          </div>
+        ))}
+        {/* Playhead */}
+        <div className="absolute top-0 bottom-0" style={{ left: 'calc(40px + 52%)', width: 1, background: '#fff', opacity: 0.5 }} />
+      </div>
+    </div>
+  )
+}
+
+function StepVisual3() {
+  return (
+    <div className="relative w-full rounded-3xl overflow-hidden flex items-center justify-center p-10"
+      style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, #e8fff8 0%, #f0f7ff 100%)' }}>
+      <div className="absolute w-48 h-48 rounded-full" style={{ background: 'rgba(6,182,212,0.12)', bottom: '-40px', right: '-40px' }} />
+      <div className="absolute w-36 h-36 rounded-full" style={{ background: 'rgba(104,69,236,0.08)', top: '-20px', left: '-20px' }} />
+
+      <div className="relative z-10 w-full max-w-xs flex flex-col gap-4">
+        {/* Video preview mini */}
+        <div className="rounded-2xl overflow-hidden relative flex items-center justify-center"
+          style={{ aspectRatio: '16/9', background: 'rgba(17,24,39,0.08)' }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(17,24,39,0.12)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(17,24,39,0.5)"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+
+        {/* Revision comments */}
+        {[
+          { text: 'Can we brighten the entrance shot?', avatar: 'Y', resolved: false },
+          { text: 'Perfect — approved! ✓', avatar: 'S', resolved: true },
+        ].map((c, i) => (
+          <div key={i} className="flex items-start gap-3 p-3 rounded-xl"
+            style={{ background: c.resolved ? 'rgba(16,185,129,0.08)' : '#fff', border: `1px solid ${c.resolved ? 'rgba(16,185,129,0.2)' : 'rgba(0,0,0,0.07)'}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+              style={{ background: c.resolved ? '#10B981' : '#6845EC' }}>
+              {c.avatar}
+            </div>
+            <p className="font-sans text-xs leading-relaxed" style={{ color: c.resolved ? '#059669' : 'rgba(17,24,39,0.7)', letterSpacing: '-0.02em' }}>
+              {c.text}
+            </p>
+          </div>
+        ))}
+
+        {/* Deliver button */}
+        <div className="rounded-xl py-3 text-center font-sans font-semibold text-sm"
+          style={{ background: 'linear-gradient(135deg, #10B981, #06B6D4)', color: '#fff', letterSpacing: '-0.02em' }}>
+          Download final video ↓
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const HOW_STEPS = [
+  {
+    n: '01',
+    tag: 'Step #1',
+    title: 'Fill in our brief',
+    short: "After working with 1,000+ properties, we've refined exactly what we need.",
+    paras: [
+      'Our brief is designed to be simple and efficient, allowing you to share your property, your positioning, and your goals in just a few minutes, without unnecessary complexity.',
+      'This ensures we fully understand how to highlight your property and attract the right audience from the start.',
+    ],
+    Visual: StepVisual1,
+    flip: false,
+  },
+  {
+    n: '02',
+    tag: 'Step #2',
+    title: 'Receive your video',
+    short: 'As soon as we receive your brief, our team starts working immediately.',
+    paras: [
+      'We carefully edit your footage to create a video that is not only visually appealing, but strategically built to capture attention, keep viewers engaged, and increase demand.',
+      'From pacing and transitions to color grading and storytelling, every detail is optimized to make your property stand out across platforms.',
+    ],
+    Visual: StepVisual2,
+    flip: true,
+  },
+  {
+    n: '03',
+    tag: 'Step #3',
+    title: 'Revise or finalize',
+    short: 'Once your video is ready, you can review it and request any adjustments if needed.',
+    paras: [
+      'We refine the edit based on your feedback until it perfectly matches your expectations.',
+      "As soon as it's approved, we deliver the final version, fully optimized and ready to be used on social media or listing platforms to maximize visibility and results.",
+    ],
+    Visual: StepVisual3,
+    flip: false,
+  },
+]
+
+function HowItWorks() {
+  return (
+    <section className="py-28" style={{ background: '#FAFAFA' }}>
+      <div className="max-w-7xl mx-auto px-6">
+
+        {/* Header */}
+        <motion.div
+          className="text-center mb-24"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <span className="section-label justify-center">How it works</span>
+          <h2 className="font-display text-5xl md:text-6xl mt-4" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
+            THREE STEPS.<br />ZERO HASSLE.
+          </h2>
+        </motion.div>
+
+        {/* Steps */}
+        <div className="flex flex-col gap-32">
+          {HOW_STEPS.map(({ n, tag, title, short, paras, Visual, flip }) => (
+            <div key={n} className={`grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${flip ? 'md:[direction:rtl]' : ''}`}>
+
+              {/* Visual */}
+              <motion.div
+                style={{ direction: 'ltr' }}
+                {...slideIn(flip ? 'right' : 'left')}
+              >
+                <Visual />
+              </motion.div>
+
+              {/* Text */}
+              <motion.div
+                className="flex flex-col gap-6"
+                style={{ direction: 'ltr' }}
+                {...slideIn(flip ? 'left' : 'right', 130)}
+              >
+                {/* Step tag + number */}
+                <div className="flex items-center gap-4">
+                  <span className="font-display text-8xl leading-none" style={{ color: 'rgba(104,69,236,0.12)', letterSpacing: '-0.04em' }}>{n}</span>
+                  <span className="font-sans font-semibold text-sm px-3 py-1 rounded-full"
+                    style={{ background: 'rgba(104,69,236,0.08)', color: '#6845EC', letterSpacing: '-0.02em' }}>
+                    {tag}
+                  </span>
+                </div>
+
+                <h3 className="font-sans font-bold" style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}>
+                  {title}
+                </h3>
+
+                <p className="font-sans font-medium" style={{ fontSize: '1.15rem', color: '#111827', letterSpacing: '-0.03em', lineHeight: 1.6 }}>
+                  {short}
+                </p>
+
+                {paras.map((p, i) => (
+                  <p key={i} className="font-sans" style={{ fontSize: '1.05rem', color: 'rgba(17,24,39,0.5)', letterSpacing: '-0.03em', lineHeight: 1.7 }}>
+                    {p}
+                  </p>
+                ))}
+              </motion.div>
+
+            </div>
+          ))}
+        </div>
+
       </div>
     </section>
   )
@@ -817,90 +1374,106 @@ function Portfolio() {
 ───────────────────────────────────────── */
 const TESTIMONIALS = [
   {
-    quote: 'Shortcut doubled my average views within 2 weeks. The edits feel premium but they also hook people in the first second. Game changer.',
+    text: 'Shortcut doubled my average views within 2 weeks. The edits feel premium but they also hook people in the first second. Game changer.',
     name: 'Jordan Lee',
-    role: '@jordan.creates',
-    sub: '1.2M followers · TikTok',
+    role: '@jordan.creates · 1.2M TikTok',
     initials: 'JL',
     color: '#6845EC',
   },
   {
-    quote: 'Our Meta ad ROAS went from 1.8x to 4.2x after switching to Shortcut. They understand what makes people stop scrolling and buy.',
+    text: 'Our Meta ad ROAS went from 1.8x to 4.2x after switching to Shortcut. They understand what makes people stop scrolling and buy.',
     name: 'Sarah Mitchell',
-    role: 'CEO, Bloom Brand',
-    sub: 'E-commerce · 7-figure brand',
+    role: 'CEO, Bloom Brand · E-commerce',
     initials: 'SM',
     color: '#2D4077',
   },
   {
-    quote: 'Best investment I\'ve made for my property listings. We sold a $3.2M property in 4 days — the video got 847K views organically.',
+    text: 'Best investment I\'ve made for my property listings. We sold a $3.2M property in 4 days — the video got 847K views organically.',
     name: 'Marcus Devlin',
-    role: 'Founder, Devlin Realty',
-    sub: 'Luxury Real Estate · Miami',
+    role: 'Founder, Devlin Realty · Miami',
     initials: 'MD',
     color: '#6845EC',
   },
   {
-    quote: 'I\'ve worked with 3 other editing agencies. Shortcut is on a different level. Turnaround is insanely fast and they nail my aesthetic every time.',
+    text: 'I\'ve worked with 3 other editing agencies. Shortcut is on a different level. Turnaround is insanely fast and they nail my aesthetic every time.',
     name: 'Priya Sharma',
-    role: '@priyalifestyle',
-    sub: '890K followers · Instagram',
+    role: '@priyalifestyle · 890K Instagram',
     initials: 'PS',
     color: '#2D4077',
   },
+  {
+    text: 'Our rental bookings went up 38% the month we started using their videos. The quality is outstanding and delivery is always on time.',
+    name: 'Thomas Beaumont',
+    role: 'Property Manager · Lyon',
+    initials: 'TB',
+    color: '#6845EC',
+  },
+  {
+    text: 'The first video they made for us went viral locally. We had 12 viewings booked within 48 hours of posting. Absolutely incredible.',
+    name: 'Claire Fontaine',
+    role: 'Real Estate Agent · Paris',
+    initials: 'CF',
+    color: '#2D4077',
+  },
+  {
+    text: 'We tried photography only for years. The moment we switched to video edits from Shortcut, the difference was night and day.',
+    name: 'David Renard',
+    role: 'Founder, Renard Immobilier',
+    initials: 'DR',
+    color: '#6845EC',
+  },
+  {
+    text: 'Incredible attention to detail. Every cut, every transition perfectly matches the tone of the property. Clients are always impressed.',
+    name: 'Anaïs Lebrun',
+    role: 'Luxury Portfolio Manager',
+    initials: 'AL',
+    color: '#2D4077',
+  },
+  {
+    text: 'Fast, reliable, and the results speak for themselves. Our average listing time dropped from 45 days to under 2 weeks.',
+    name: 'Nicolas Garnier',
+    role: 'CEO, NG Properties · Bordeaux',
+    initials: 'NG',
+    color: '#6845EC',
+  },
 ]
+
+const tcol1 = TESTIMONIALS.slice(0, 3)
+const tcol2 = TESTIMONIALS.slice(3, 6)
+const tcol3 = TESTIMONIALS.slice(6, 9)
 
 function Testimonials() {
   return (
-    <section className="py-28 relative overflow-hidden" style={{ background: '#F2EAE4' }}>
+    <section className="py-28 relative overflow-hidden" style={{ background: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto px-6">
-        <FadeIn className="text-center mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true }}
+          className="flex flex-col items-center justify-center max-w-2xl mx-auto mb-14 text-center"
+        >
           <span className="section-label justify-center">Testimonials</span>
-          <h2 className="font-display text-5xl md:text-6xl tracking-wide mb-4" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
+          <h2 className="font-display text-5xl md:text-6xl mt-4 mb-4" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
             DON'T TAKE<br />OUR WORD FOR IT
           </h2>
-        </FadeIn>
+          <p className="font-sans text-base" style={{ color: 'rgba(17,24,39,0.5)', letterSpacing: '-0.02em' }}>
+            See what our clients have to say about us.
+          </p>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {TESTIMONIALS.map((t, i) => (
-            <FadeIn key={t.name} delay={i * 100}>
-              <div
-                className="p-7 rounded-2xl h-full card-glow"
-                style={{
-                  background: '#FFFFFF',
-                  border: '1px solid rgba(0,0,0,0.07)',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                }}
-              >
-                {/* Stars */}
-                <div className="flex gap-1 mb-5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={13} style={{ fill: '#6845EC', color: '#6845EC' }} />
-                  ))}
-                </div>
-
-                {/* Quote mark */}
-                <div className="font-display text-6xl leading-none mb-2" style={{ color: 'rgba(104,69,236,0.1)' }}>"</div>
-
-                <p className="font-sans leading-relaxed mb-7 text-base" style={{ color: 'rgba(17,24,39,0.65)' }}>
-                  {t.quote}
-                </p>
-
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-heading font-bold text-white shrink-0"
-                    style={{ background: t.color }}
-                  >
-                    {t.initials}
-                  </div>
-                  <div>
-                    <p className="font-heading font-bold text-sm" style={{ color: '#111827' }}>{t.name}</p>
-                    <p className="font-sans text-xs" style={{ color: 'rgba(17,24,39,0.4)' }}>{t.role} · {t.sub}</p>
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-          ))}
+        <div
+          className="flex justify-center gap-8 mt-4"
+          style={{
+            maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
+            maxHeight: 740,
+            overflow: 'hidden',
+          }}
+        >
+          <TestimonialsColumn testimonials={tcol1} duration={18} />
+          <TestimonialsColumn testimonials={tcol2} duration={22} className="hidden md:block" />
+          <TestimonialsColumn testimonials={tcol3} duration={20} className="hidden lg:block" />
         </div>
       </div>
     </section>
@@ -1193,7 +1766,7 @@ function PricingCard({ plan, highlight }) {
 
 function Pricing() {
   return (
-    <section id="pricing" className="py-28" style={{ background: '#FAFAFA' }}>
+    <section id="pricing" className="pt-28 pb-6" style={{ background: '#FAFAFA' }}>
       <div className="max-w-7xl mx-auto px-6">
         <FadeIn className="text-center mb-16">
           <span className="section-label justify-center">Pricing</span>
@@ -1212,6 +1785,123 @@ function Pricing() {
             </FadeIn>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────
+   TRUST BAR
+───────────────────────────────────────── */
+function PaymentBadge({ children, bg = '#fff', color = '#111827' }) {
+  return (
+    <div
+      className="flex items-center justify-center rounded-md px-4 py-2 font-bold"
+      style={{
+        background: bg,
+        color,
+        border: '1px solid rgba(17,24,39,0.12)',
+        minWidth: 72,
+        height: 48,
+        fontSize: 17,
+        letterSpacing: '-0.02em',
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function BrandLogo({ icon, name }) {
+  return (
+    <div className="flex items-center gap-2" style={{ color: 'rgba(17,24,39,0.45)', fontSize: 16, fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}>
+      <span style={{ opacity: 0.5, fontSize: 18 }}>{icon}</span>
+      <span>{name}</span>
+    </div>
+  )
+}
+
+const BRAND_LOGOS = [
+  { icon: '✦', name: 'Accredifi.' },
+  { icon: '©', name: 'CopyCatch' },
+  { icon: '∞', name: 'Innovinity' },
+  { icon: '◎', name: 'Humaify' },
+  { icon: '⌂', name: 'PingYou' },
+  { icon: '✦', name: 'PureVital' },
+  { icon: '◈', name: 'Agint' },
+  { icon: '⬡', name: 'supportmagic' },
+  { icon: '◉', name: 'persocare' },
+  { icon: '▲', name: 'Bloosh' },
+]
+
+function TrustBar() {
+  return (
+    <section className="pt-6 pb-16" style={{ background: '#FAFAFA' }}>
+      <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
+
+        {/* CTA Button — full width of pricing grid, rectangular, white bg */}
+        <a
+          href="mailto:hello@shortcut.video"
+          className="inline-flex items-center justify-center gap-2 font-sans font-semibold text-lg transition-all w-full"
+          style={{
+            padding: '22px 40px',
+            border: '1.5px solid #6845EC',
+            color: '#6845EC',
+            background: '#fff',
+            textDecoration: 'none',
+            letterSpacing: '-0.03em',
+            borderRadius: 12,
+          }}
+        >
+          Book a Call →
+        </a>
+
+        {/* Guarantee */}
+        <div className="text-center">
+          <p className="font-sans font-bold text-xl" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
+            100% Risk-Free Satisfaction Guarantee
+          </p>
+          <p className="font-sans mt-1 max-w-lg mx-auto" style={{ fontSize: 16, color: 'rgba(17,24,39,0.45)', letterSpacing: '-0.02em', lineHeight: 1.6 }}>
+            We're committed to your success. If you're not completely thrilled with your logo, we'll keep working until you are, or provide a full refund.
+          </p>
+        </div>
+
+        {/* Payment Logos */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <PaymentBadge color="#1A1F71"><span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 17 }}>VISA</span></PaymentBadge>
+          <PaymentBadge>
+            {/* Mastercard placeholder */}
+            <span style={{ opacity: 0.25, fontSize: 15 }}>——</span>
+          </PaymentBadge>
+          <PaymentBadge bg="#016FD0" color="#fff"><span style={{ fontSize: 15, fontWeight: 900 }}>AMEX</span></PaymentBadge>
+          <PaymentBadge><span style={{ color: '#6772E5', fontWeight: 700, fontSize: 16 }}>stripe</span></PaymentBadge>
+          <PaymentBadge>
+            <span style={{ color: '#003087', fontWeight: 900, fontSize: 15 }}>JCB</span>
+          </PaymentBadge>
+          <PaymentBadge>
+            <span style={{ color: '#003087', fontWeight: 700, fontSize: 15 }}>Pay</span>
+            <span style={{ color: '#009cde', fontWeight: 700, fontSize: 15 }}>Pal</span>
+          </PaymentBadge>
+          <PaymentBadge>
+            <span style={{ fontWeight: 500, fontSize: 15, color: '#111827' }}>G</span>
+            <span style={{ fontWeight: 500, fontSize: 15, color: '#111827', marginLeft: 2 }}>Pay</span>
+          </PaymentBadge>
+          <PaymentBadge>
+            <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>&#xf8ff; Pay</span>
+          </PaymentBadge>
+          <PaymentBadge>
+            {/* Bancontact placeholder */}
+            <span style={{ opacity: 0.25, fontSize: 15 }}>——</span>
+          </PaymentBadge>
+        </div>
+
+        {/* Brand Logos */}
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 w-full">
+          {BRAND_LOGOS.map((b) => (
+            <BrandLogo key={b.name} icon={b.icon} name={b.name} />
+          ))}
+        </div>
+
       </div>
     </section>
   )
@@ -1398,12 +2088,15 @@ export default function App() {
       <Marquee />
       <Targets />
       <Services />
+      <ValueProps />
       <ZoomParallaxSection />
       <Process />
       <WhyUs />
       <Portfolio />
+      <HowItWorks />
       <Testimonials />
       <Pricing />
+      <TrustBar />
       <FinalCTA />
       <Footer />
     </div>
