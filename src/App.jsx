@@ -135,6 +135,7 @@ function Hero({ user, onOpenAuth }) {
 
   return (
     <div
+      id="hero"
       ref={heroRef}
       className="relative w-full overflow-hidden"
       style={{ background: '#07070F', transition: 'background 0.6s ease' }}
@@ -2117,13 +2118,9 @@ export default function App() {
 
   const { user } = useAuth({
     onSignedIn: () => {
-      /* Fires on every SIGNED_IN event — including after email confirmation redirect.
-         Only auto-open if the overlay isn't already showing. */
-      setAuthDefaultView('dashboard')
-      setAuthOpen(true)
-      /* Clean the token hash from the URL so it's not visible/bookmarkable */
       if (window.location.hash.includes('access_token')) {
         window.history.replaceState(null, '', window.location.pathname)
+        document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' })
       }
     },
   })
