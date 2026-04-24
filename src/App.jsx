@@ -1390,10 +1390,14 @@ function TestimonialBannerJulie() {
         {/* Photo + identité */}
         <div className="flex-shrink-0 flex flex-col items-center gap-3 text-center">
           <div
-            className="overflow-hidden rounded-2xl flex items-center justify-center"
-            style={{ width: 140, height: 160, border: '2px dashed rgba(255,255,255,0.2)', flexShrink: 0 }}
+            className="overflow-hidden rounded-2xl"
+            style={{ width: 140, height: 160, flexShrink: 0 }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>Image space</span>
+            <img
+              src="/julie-martin.jpg"
+              alt="Julie Martin"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+            />
           </div>
           <div>
             <p
@@ -2103,7 +2107,6 @@ function Footer() {
    APP
 ───────────────────────────────────────── */
 export default function App() {
-  const { user } = useAuth()
   const [authOpen, setAuthOpen] = useState(false)
   const [authDefaultView, setAuthDefaultView] = useState('signin')
 
@@ -2111,6 +2114,19 @@ export default function App() {
     setAuthDefaultView(view)
     setAuthOpen(true)
   }
+
+  const { user } = useAuth({
+    onSignedIn: () => {
+      /* Fires on every SIGNED_IN event — including after email confirmation redirect.
+         Only auto-open if the overlay isn't already showing. */
+      setAuthDefaultView('dashboard')
+      setAuthOpen(true)
+      /* Clean the token hash from the URL so it's not visible/bookmarkable */
+      if (window.location.hash.includes('access_token')) {
+        window.history.replaceState(null, '', window.location.pathname)
+      }
+    },
+  })
 
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>

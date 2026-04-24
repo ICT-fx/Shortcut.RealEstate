@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabase'
 
-export function useAuth() {
+export function useAuth({ onSignedIn } = {}) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  const onSignedInRef = useCallback(onSignedIn, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -11,8 +13,11 @@ export function useAuth() {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      if (event === 'SIGNED_IN' && onSignedInRef) {
+        onSignedInRef()
+      }
     })
 
     return () => subscription.unsubscribe()

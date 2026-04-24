@@ -90,7 +90,7 @@ function LeftPanel() {
             letterSpacing: '-0.04em',
           }}
         >
-          YOUR VIDEO.<br />YOUR BRAND.<br />YOUR RESULTS.
+          YOUR VIDEO.<br />YOUR PROPERTY.<br />YOUR RESULTS.
         </p>
         <p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', letterSpacing: '-0.02em' }}>
           Manage your orders and track your projects.
