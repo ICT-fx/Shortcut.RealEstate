@@ -13,6 +13,7 @@ import { ZoomParallax } from './components/ui/zoom-parallax'
 import { TestimonialsColumn } from './components/ui/testimonials-columns'
 import { useAuth } from './lib/useAuth'
 import { AuthOverlay } from './components/ui/auth-overlay'
+import { BookingOverlay } from './components/ui/booking-overlay'
 
 /* ─────────────────────────────────────────
    UTILITIES
@@ -45,10 +46,25 @@ function FadeIn({ children, delay = 0, className = '' }) {
   )
 }
 
+function navigateTo(sectionId) {
+  const overlay = document.getElementById('nav-transition-overlay')
+  const target = document.getElementById(sectionId)
+  if (!target || !overlay) return
+  overlay.style.transition = 'opacity 0.22s ease'
+  overlay.style.opacity = '1'
+  overlay.style.pointerEvents = 'all'
+  setTimeout(() => {
+    window.scrollTo({ top: target.offsetTop, behavior: 'instant' })
+    overlay.style.transition = 'opacity 0.45s ease'
+    overlay.style.opacity = '0'
+    setTimeout(() => { overlay.style.pointerEvents = 'none' }, 450)
+  }, 220)
+}
+
 /* ─────────────────────────────────────────
    HERO  (dark + scroll animation)
 ───────────────────────────────────────── */
-function Hero({ user, onOpenAuth }) {
+function Hero({ user, onOpenAuth, onOpenBooking }) {
   const navLinks = [
     { label: 'SERVICES', href: '#services' },
     { label: 'WORK', href: '#portfolio' },
@@ -166,14 +182,14 @@ function Hero({ user, onOpenAuth }) {
           className="hidden items-center space-x-8 md:flex"
         >
           {navLinks.map((link) => (
-            <a
+            <button
               key={link.label}
-              href={link.href}
+              onClick={() => navigateTo(link.href.replace('#', ''))}
               className="text-sm font-medium tracking-widest transition-colors hover:text-white"
-              style={{ color: 'rgba(255,255,255,0.45)', textDecoration: 'none', fontFamily: 'DM Sans, sans-serif' }}
+              style={{ color: 'rgba(255,255,255,0.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', padding: 0 }}
             >
               {link.label}
-            </a>
+            </button>
           ))}
         </motion.nav>
 
@@ -208,13 +224,13 @@ function Hero({ user, onOpenAuth }) {
               My Account
             </button>
           )}
-          <a
-            href="#contact"
+          <button
+            onClick={onOpenBooking}
             className="rounded-full px-5 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
-            style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC40', textDecoration: 'none', fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}
+            style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC40', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}
           >
             Book a call →
-          </a>
+          </button>
         </motion.div>
       </header>
 
@@ -250,22 +266,22 @@ function Hero({ user, onOpenAuth }) {
 
           <div className="flex flex-wrap items-center gap-3">
             {/* View pricing — rectangle arrondi violet */}
-            <a
-              href="#pricing"
+            <button
+              onClick={() => navigateTo('pricing')}
               className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold text-white transition-all hover:opacity-90"
-              style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC50', textDecoration: 'none', letterSpacing: '-0.03em' }}
+              style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC50', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
             >
               View pricing <ArrowRight className="h-4 w-4" />
-            </a>
+            </button>
 
             {/* Book a call — rectangle arrondi blanc */}
-            <a
-              href="#contact"
+            <button
+              onClick={onOpenBooking}
               className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold transition-all hover:opacity-90"
-              style={{ background: '#ffffff', color: '#0D0D0D', textDecoration: 'none', letterSpacing: '-0.03em' }}
+              style={{ background: '#ffffff', color: '#0D0D0D', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
             >
               Book a call
-            </a>
+            </button>
 
             <span className="hidden md:block h-5 w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
 
@@ -1121,6 +1137,16 @@ function StepVisual1() {
           style={{ background: '#6845EC', letterSpacing: '-0.02em' }}>
           Submit brief →
         </div>
+
+        {/* File sharing row */}
+        <div className="mt-3 pt-3 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+          <span className="font-sans text-xs" style={{ color: 'rgba(17,24,39,0.35)', letterSpacing: '-0.02em' }}>Share your rushes & photos via</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <img src="/logos drop rush/Google_Drive_text_logo_grey.png" alt="Google Drive" style={{ height: 16, objectFit: 'contain', opacity: 0.55 }} />
+            <img src="/logos drop rush/wetransfer.svg" alt="WeTransfer" style={{ height: 14, objectFit: 'contain', opacity: 0.55 }} />
+            <img src="/logos drop rush/Dropbox_logo_2017.svg.png" alt="Dropbox" style={{ height: 14, objectFit: 'contain', opacity: 0.55 }} />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -1216,7 +1242,9 @@ const HOW_STEPS = [
     paras: [
       'Our brief is designed to be simple and efficient, allowing you to share your property, your positioning, and your goals in just a few minutes, without unnecessary complexity.',
       'This ensures we fully understand how to highlight your property and attract the right audience from the start.',
+      'Your rushes and photos must be shared with us via a link — Google Drive, WeTransfer, Dropbox, or any other file-sharing platform works perfectly.',
     ],
+    fileLogos: true,
     Visual: StepVisual1,
     flip: false,
   },
@@ -1265,7 +1293,7 @@ function HowItWorks() {
 
         {/* Steps */}
         <div className="flex flex-col gap-32">
-          {HOW_STEPS.map(({ n, title, short, paras, Visual, flip }) => (
+          {HOW_STEPS.map(({ n, title, short, paras, fileLogos, Visual, flip }) => (
             <div key={n} className={`grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${flip ? 'md:[direction:rtl]' : ''}`}>
 
               {/* Visual */}
@@ -1282,13 +1310,8 @@ function HowItWorks() {
                 style={{ direction: 'ltr' }}
                 {...slideIn(flip ? 'left' : 'right', 130)}
               >
-                {/* Step tag + number */}
-                <div className="flex items-center gap-4">
-                  <span className="font-display text-8xl leading-none" style={{ color: 'rgba(104,69,236,0.12)', letterSpacing: '-0.04em' }}>{n}</span>
-                </div>
-
                 <h3 className="font-sans font-bold" style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}>
-                  {title}
+                  <span style={{ color: 'rgba(104,69,236,0.35)' }}>{n}</span><span style={{ marginLeft: '0.4em' }}>{title}</span>
                 </h3>
 
                 <p className="font-sans font-medium" style={{ fontSize: '1.15rem', color: '#111827', letterSpacing: '-0.03em', lineHeight: 1.6 }}>
@@ -1300,6 +1323,15 @@ function HowItWorks() {
                     {p}
                   </p>
                 ))}
+
+                {fileLogos && (
+                  <div className="flex items-center gap-5 flex-wrap pt-1">
+                    <img src="/logos drop rush/Google_Drive_text_logo_grey.png" alt="Google Drive" style={{ height: 22, objectFit: 'contain', opacity: 0.65 }} />
+                    <img src="/logos drop rush/wetransfer.svg" alt="WeTransfer" style={{ height: 20, objectFit: 'contain', opacity: 0.65 }} />
+                    <img src="/logos drop rush/Dropbox_logo_2017.svg.png" alt="Dropbox" style={{ height: 20, objectFit: 'contain', opacity: 0.65 }} />
+                    <span className="font-sans text-sm" style={{ color: 'rgba(17,24,39,0.35)', letterSpacing: '-0.03em' }}>or any link</span>
+                  </div>
+                )}
               </motion.div>
 
             </div>
@@ -1450,7 +1482,7 @@ function TestimonialBannerJulie() {
 
 function Testimonials() {
   return (
-    <section className="py-28 relative overflow-hidden" style={{ background: '#FFFFFF' }}>
+    <section className="pt-28 pb-28 relative overflow-hidden" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1459,12 +1491,11 @@ function Testimonials() {
           viewport={{ once: true }}
           className="flex flex-col items-center justify-center max-w-2xl mx-auto mb-14 text-center"
         >
-          <span className="section-label justify-center">Testimonials</span>
-          <h2 className="font-display text-5xl md:text-6xl mt-4 mb-4" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
-            DON'T TAKE<br />OUR WORD FOR IT
+          <h2 className="font-display text-5xl md:text-6xl mb-4" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
+            What Our Clients Say
           </h2>
           <p className="font-sans text-base" style={{ color: 'rgba(17,24,39,0.5)', letterSpacing: '-0.02em' }}>
-            See what our clients have to say about us.
+            Real feedback from property owners<br />who got real results
           </p>
         </motion.div>
 
@@ -1821,27 +1852,27 @@ const BRAND_LOGOS = [
   { icon: '▲', name: 'Bloosh' },
 ]
 
-function TrustBar() {
+function TrustBar({ onOpenBooking }) {
   return (
     <section className="pt-6 pb-16" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
 
         {/* CTA Button — full width of pricing grid, rectangular, white bg */}
-        <a
-          href="mailto:hello@shortcut.video"
+        <button
+          onClick={onOpenBooking}
           className="inline-flex items-center justify-center gap-2 font-sans font-semibold text-lg transition-all w-full"
           style={{
             padding: '22px 40px',
             border: '1.5px solid #6845EC',
             color: '#6845EC',
             background: '#fff',
-            textDecoration: 'none',
+            cursor: 'pointer',
             letterSpacing: '-0.03em',
             borderRadius: 12,
           }}
         >
           Book a Call →
-        </a>
+        </button>
 
         {/* Guarantee */}
         <div className="text-center">
@@ -2002,7 +2033,7 @@ function FinalCTA() {
 /* ─────────────────────────────────────────
    FOOTER
 ───────────────────────────────────────── */
-function Footer() {
+function Footer({ onOpenBooking }) {
   return (
     <footer style={{ background: '#FFFFFF', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
       <div className="max-w-7xl mx-auto px-6 py-14">
@@ -2068,15 +2099,27 @@ function Footer() {
               <ul className="space-y-2.5">
                 {col.links.map(link => (
                   <li key={link}>
-                    <a
-                      href="#"
-                      className="font-sans text-sm transition-colors"
-                      style={{ color: 'rgba(17,24,39,0.35)' }}
-                      onMouseOver={e => e.target.style.color = '#111827'}
-                      onMouseOut={e => e.target.style.color = 'rgba(17,24,39,0.35)'}
-                    >
-                      {link}
-                    </a>
+                    {link === 'Book a call' ? (
+                      <button
+                        onClick={onOpenBooking}
+                        className="font-sans text-sm transition-colors"
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'rgba(17,24,39,0.35)', fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}
+                        onMouseOver={e => e.target.style.color = '#111827'}
+                        onMouseOut={e => e.target.style.color = 'rgba(17,24,39,0.35)'}
+                      >
+                        {link}
+                      </button>
+                    ) : (
+                      <a
+                        href="#"
+                        className="font-sans text-sm transition-colors"
+                        style={{ color: 'rgba(17,24,39,0.35)' }}
+                        onMouseOver={e => e.target.style.color = '#111827'}
+                        onMouseOut={e => e.target.style.color = 'rgba(17,24,39,0.35)'}
+                      >
+                        {link}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -2110,6 +2153,7 @@ function Footer() {
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false)
   const [authDefaultView, setAuthDefaultView] = useState('signin')
+  const [bookingOpen, setBookingOpen] = useState(false)
 
   function openAuth(view = 'signin') {
     setAuthDefaultView(view)
@@ -2127,8 +2171,20 @@ export default function App() {
 
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
+      <div
+        id="nav-transition-overlay"
+        style={{
+          position: 'fixed', inset: 0, background: '#07070F',
+          opacity: 0, pointerEvents: 'none', zIndex: 9999,
+        }}
+      />
       <AuthOverlay open={authOpen} onClose={() => setAuthOpen(false)} defaultView={authDefaultView} />
-      <Hero user={user} onOpenAuth={openAuth} />
+      <BookingOverlay
+        open={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        src="https://cal.com/fantin-slmlin/discovery-call?embed=true"
+      />
+      <Hero user={user} onOpenAuth={openAuth} onOpenBooking={() => setBookingOpen(true)} />
       <Targets />
       <Services />
       <TestimonialBanner />
@@ -2139,9 +2195,9 @@ export default function App() {
       <TestimonialBannerJulie />
       <Testimonials />
       <Pricing />
-      <TrustBar />
+      <TrustBar onOpenBooking={() => setBookingOpen(true)} />
       <FinalCTA />
-      <Footer />
+      <Footer onOpenBooking={() => setBookingOpen(true)} />
     </div>
   )
 }
