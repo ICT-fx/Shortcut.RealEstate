@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-  Zap, Scissors, Layers, Palette, Clock,
-  Star, Check, ArrowRight, ArrowLeft, Film,
-  Building2, Home, Users, TrendingUp, Award,
-  Upload, RefreshCw, Rocket,
+  Zap, Check, ArrowRight, ArrowLeft,
+  Building2, Home, Users,
   Instagram, Twitter, Youtube, Linkedin,
-  BarChart2, Globe, Clapperboard,
+  BarChart2,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -13,6 +11,8 @@ import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import { ContainerScroll } from './components/ui/container-scroll-animation'
 import { ZoomParallax } from './components/ui/zoom-parallax'
 import { TestimonialsColumn } from './components/ui/testimonials-columns'
+import { useAuth } from './lib/useAuth'
+import { AuthOverlay } from './components/ui/auth-overlay'
 
 /* ─────────────────────────────────────────
    UTILITIES
@@ -48,7 +48,7 @@ function FadeIn({ children, delay = 0, className = '' }) {
 /* ─────────────────────────────────────────
    HERO  (dark + scroll animation)
 ───────────────────────────────────────── */
-function Hero() {
+function Hero({ user, onOpenAuth }) {
   const navLinks = [
     { label: 'SERVICES', href: '#services' },
     { label: 'WORK', href: '#portfolio' },
@@ -176,21 +176,45 @@ function Hero() {
           ))}
         </motion.nav>
 
-        <motion.a
-          href="#contact"
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="hidden md:inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
-          style={{
-            background: '#6845EC',
-            boxShadow: '0 4px 20px #6845EC40',
-            textDecoration: 'none',
-            fontFamily: 'DM Sans, sans-serif',
-          }}
+          className="hidden md:flex items-center gap-3"
         >
-          Book a call →
-        </motion.a>
+          {user ? (
+            <button
+              onClick={() => onOpenAuth('dashboard')}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '50%', background: '#7C3AED',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontFamily: 'DM Sans', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '-0.02em',
+              }}>
+                {(user.user_metadata?.full_name || user.email || 'U').slice(0, 2).toUpperCase()}
+              </div>
+              <span style={{ color: 'rgba(255,255,255,0.7)', fontFamily: 'DM Sans', fontSize: '0.85rem', letterSpacing: '-0.02em' }}>
+                {user.user_metadata?.full_name?.split(' ')[0] || user.email}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onOpenAuth('signin')}
+              className="rounded-full px-5 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}
+            >
+              My Account
+            </button>
+          )}
+          <a
+            href="#contact"
+            className="rounded-full px-5 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
+            style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC40', textDecoration: 'none', fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}
+          >
+            Book a call →
+          </a>
+        </motion.div>
       </header>
 
       {/* ── Texte hero — directement sous la nav ── */}
@@ -285,33 +309,6 @@ function Hero() {
 }
 
 /* ─────────────────────────────────────────
-   MARQUEE
-───────────────────────────────────────── */
-function Marquee() {
-  const items = [
-    'TikTok', 'YouTube', 'Instagram Reels', 'Meta Ads',
-    'YouTube Shorts', 'Corporate Video', 'Real Estate', 'LinkedIn',
-    'Product Videos', 'Motion Design', 'Color Grading',
-  ]
-  const doubled = [...items, ...items]
-
-  return (
-    <div className="border-y py-4 overflow-hidden" style={{ background: '#F2EAE4', borderColor: 'rgba(0,0,0,0.06)' }}>
-      <div className="flex whitespace-nowrap animate-marquee">
-        {doubled.map((item, i) => (
-          <span key={i} className="flex items-center mx-5">
-            <span className="font-heading font-semibold text-xs uppercase tracking-[0.15em]" style={{ color: 'rgba(45,64,119,0.45)' }}>
-              {item}
-            </span>
-            <span className="ml-5 text-lg" style={{ color: 'rgba(104,69,236,0.3)' }}>✦</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────
    TARGETS
 ───────────────────────────────────────── */
 const BELIEF_BULLETS = [
@@ -322,7 +319,7 @@ const BELIEF_BULLETS = [
 
 function Targets() {
   return (
-    <section id="services" className="pt-28 pb-10 relative overflow-hidden" style={{ background: '#FAFAFA' }}>
+    <section id="services" className="pt-28 pb-0 relative overflow-hidden" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-20">
 
@@ -441,7 +438,7 @@ const COMPARISON_RIGHT = [
 
 function Services() {
   return (
-    <section className="pt-24 pb-24 relative" style={{ background: '#FAFAFA' }}>
+    <section className="pt-24 pb-24 relative" style={{ background: '#FFFFFF' }}>
       <div className="max-w-5xl mx-auto px-6">
 
         {/* ── Header centré ── */}
@@ -453,8 +450,8 @@ function Services() {
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             ))}
-            <span className="font-sans text-base font-medium ml-1" style={{ color: '#6845EC', letterSpacing: '-0.03em' }}>
-              +1,000 – 5 star reviews
+            <span className="font-sans text-xl font-semibold ml-1" style={{ color: '#111827', letterSpacing: '-0.03em' }}>
+              +500 – 5 star reviews
             </span>
           </div>
 
@@ -485,9 +482,9 @@ function Services() {
           <div className="grid grid-cols-2">
 
             {/* Colonne Gauche */}
-            <div className="pr-8 md:pr-14">
+            <div className="pr-6 md:pr-10">
               <h3
-                className="font-sans font-bold mb-6"
+                className="font-sans font-bold mb-3"
                 style={{ fontSize: '1.75rem', color: '#111827', letterSpacing: '-0.04em' }}
               >
                 Traditional approach
@@ -495,15 +492,14 @@ function Services() {
               {COMPARISON_LEFT.map((item, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 py-5"
-                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}
+                  className="flex items-center gap-2.5 py-2.5"
+                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: i === COMPARISON_LEFT.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none' }}
                 >
-                  {/* Icône X grise */}
                   <div
-                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                    className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
                     style={{ background: 'rgba(0,0,0,0.07)' }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                       <path d="M2 2l6 6M8 2l-6 6" stroke="rgba(0,0,0,0.35)" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   </div>
@@ -518,9 +514,9 @@ function Services() {
             </div>
 
             {/* Colonne Droite */}
-            <div className="pl-8 md:pl-14" style={{ borderLeft: '1px solid rgba(0,0,0,0.08)' }}>
+            <div className="pl-6 md:pl-10" style={{ borderLeft: '1px solid rgba(0,0,0,0.08)' }}>
               <h3
-                className="font-sans font-bold mb-6"
+                className="font-sans font-bold mb-3"
                 style={{ fontSize: '1.75rem', color: '#111827', letterSpacing: '-0.04em' }}
               >
                 Shortcut
@@ -528,15 +524,14 @@ function Services() {
               {COMPARISON_RIGHT.map((item, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 py-5"
-                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}
+                  className="flex items-center gap-2.5 py-2.5"
+                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: i === COMPARISON_RIGHT.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none' }}
                 >
-                  {/* Icône violette */}
                   <div
-                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                    className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
                     style={{ background: '#6845EC' }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 11 11" fill="none">
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                       <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
@@ -553,6 +548,75 @@ function Services() {
           </div>
         </FadeIn>
 
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────
+   TESTIMONIAL BANNER
+───────────────────────────────────────── */
+function TestimonialBanner() {
+  return (
+    <section style={{ background: '#07070F' }} className="py-16 px-6">
+      <div
+        className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-14"
+      >
+        {/* Photo + identité */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-3 text-center">
+          <div
+            className="overflow-hidden rounded-2xl"
+            style={{ width: 140, height: 160, border: '2px solid rgba(104,69,236,0.5)', flexShrink: 0 }}
+          >
+            <img
+              src="/marc-delcourt.jpg"
+              alt="Marc Delcourt"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }}
+            />
+          </div>
+          <div>
+            <p
+              className="font-sans font-bold"
+              style={{ color: '#fff', fontSize: '1.15rem', letterSpacing: '-0.03em', lineHeight: 1.3 }}
+            >
+              Marc Delcourt
+            </p>
+            <p
+              className="font-sans"
+              style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', letterSpacing: '-0.02em' }}
+            >
+              Homeowner
+            </p>
+          </div>
+        </div>
+
+        {/* Séparateur vertical */}
+        <div
+          className="hidden md:block flex-shrink-0"
+          style={{ width: 1, height: 120, background: 'rgba(255,255,255,0.12)' }}
+        />
+
+        {/* Citation */}
+        <blockquote className="relative">
+          <span
+            aria-hidden="true"
+            className="font-display absolute"
+            style={{ top: '-0.5rem', left: '-0.2rem', fontSize: '4rem', color: '#6845EC', lineHeight: 1, opacity: 0.6 }}
+          >
+            "
+          </span>
+          <p
+            className="font-sans pl-8"
+            style={{
+              fontSize: 'clamp(1.2rem, 1.8vw, 1.5rem)',
+              color: '#ffffff',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.65,
+            }}
+          >
+            Shortcut transformed my property listing completely. It was barely getting noticed at first, after their video, it sold in just a few weeks. No complicated process, just sharp, high-impact editing that actually delivers results.
+          </p>
+        </blockquote>
       </div>
     </section>
   )
@@ -614,7 +678,7 @@ const gradientText = {
 
 function ValueProps() {
   return (
-    <section className="py-28" style={{ background: '#FAFAFA' }}>
+    <section className="py-28" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6 flex flex-col gap-36">
 
         {/* ── Row 1 — Texte depuis gauche, vidéo depuis droite ── */}
@@ -707,7 +771,7 @@ function ValueProps() {
         </div>
 
         {/* ── Enter a new way... ── */}
-        <div className="text-center py-8 flex flex-col items-center gap-3">
+        <div className="text-center pt-8 flex flex-col items-center gap-3" style={{ marginBottom: '-4rem' }}>
           <motion.p
             className="font-display"
             style={{ fontSize: 'clamp(5rem, 12vw, 10rem)', color: '#111827', letterSpacing: '-0.04em', lineHeight: 1 }}
@@ -769,177 +833,61 @@ const PARALLAX_IMAGES = [
 ]
 
 function ZoomParallaxSection() {
+  const sectionRef = useRef(null)
+  const overlayRef = useRef(null)
+
+  useEffect(() => {
+    const section = sectionRef.current
+    const overlay = overlayRef.current
+    if (!section || !overlay) return
+
+    let triggered = false
+
+    const revealPortfolio = () => {
+      triggered = true
+      const portfolio = document.getElementById('portfolio')
+      if (portfolio) {
+        window.scrollTo({ top: portfolio.offsetTop, behavior: 'instant' })
+      }
+      overlay.style.transition = 'opacity 0.7s ease'
+      overlay.style.opacity = 0
+      setTimeout(() => { overlay.style.transition = ''; triggered = false }, 700)
+    }
+
+    const onScroll = () => {
+      if (triggered) return
+      const rect = section.getBoundingClientRect()
+      const maxScroll = section.offsetHeight - window.innerHeight
+      if (maxScroll <= 0) return
+      const progress = -rect.top / maxScroll
+
+      if (progress < 0.6) {
+        overlay.style.opacity = 0
+      } else if (progress <= 1) {
+        const opacity = Math.min(1, (progress - 0.6) / 0.3)
+        overlay.style.opacity = opacity
+        if (opacity >= 0.99) revealPortfolio()
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <section className="relative w-full" style={{ background: '#FAFAFA' }}>
+    <section ref={sectionRef} className="relative w-full" style={{ background: '#FFFFFF' }}>
       <ZoomParallax images={PARALLAX_IMAGES} />
-    </section>
-  )
-}
-
-/* ─────────────────────────────────────────
-   PROCESS
-───────────────────────────────────────── */
-const STEPS = [
-  {
-    n: '01',
-    icon: Upload,
-    title: 'Send your content',
-    desc: 'Upload your footage, give us a brief, and share your brand assets. Takes less than 5 minutes.',
-  },
-  {
-    n: '02',
-    icon: Scissors,
-    title: 'We edit & optimize',
-    desc: 'Our editors craft your video with precision — optimized for your platform and audience.',
-  },
-  {
-    n: '03',
-    icon: Rocket,
-    title: 'You get results',
-    desc: 'Receive your polished video within 24–72h. Unlimited revisions until you\'re 100% happy.',
-  },
-]
-
-function Process() {
-  return (
-    <section id="process" className="py-28" style={{ background: '#FAFAFA' }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <FadeIn className="text-center mb-16">
-          <span className="section-label justify-center">How it works</span>
-          <h2 className="font-display text-5xl md:text-6xl tracking-wide mb-4" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
-            THREE STEPS.<br />ZERO HASSLE.
-          </h2>
-          <p className="font-sans max-w-md mx-auto" style={{ color: 'rgba(17,24,39,0.45)' }}>
-            We made the process as simple as possible so you can focus on creating.
-          </p>
-        </FadeIn>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Connecting line (desktop) */}
-          <div
-            className="hidden md:block absolute top-12 left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-[1px] pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg, transparent, rgba(104,69,236,0.3), rgba(45,64,119,0.3), transparent)',
-            }}
-          />
-
-          {STEPS.map((step, i) => (
-            <FadeIn key={step.n} delay={i * 150}>
-              <div className="flex flex-col items-center text-center">
-                {/* Number + icon */}
-                <div className="relative mb-7">
-                  <div
-                    className="w-24 h-24 rounded-full flex items-center justify-center relative z-10"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(104,69,236,0.12), rgba(45,64,119,0.08))',
-                      border: '1px solid rgba(104,69,236,0.2)',
-                      boxShadow: '0 0 40px rgba(104,69,236,0.1)',
-                    }}
-                  >
-                    <step.icon size={28} style={{ color: '#6845EC' }} />
-                  </div>
-                  <span
-                    className="absolute -top-2 -right-2 font-display text-4xl leading-none z-20"
-                    style={{ color: 'rgba(104,69,236,0.5)' }}
-                  >
-                    {step.n}
-                  </span>
-                </div>
-
-                <h3 className="font-heading font-bold text-xl mb-3" style={{ color: '#111827' }}>{step.title}</h3>
-                <p className="font-sans text-sm leading-relaxed max-w-xs" style={{ color: 'rgba(17,24,39,0.45)' }}>
-                  {step.desc}
-                </p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ─────────────────────────────────────────
-   WHY US
-───────────────────────────────────────── */
-const STATS = [
-  { value: '24h', label: 'Avg. delivery time', sub: 'Rush options available', icon: Zap },
-  { value: '100+', label: 'Happy clients', sub: 'Creators, brands & agencies', icon: Users },
-  { value: '4.9★', label: 'Average rating', sub: 'Across all platforms', icon: Star },
-  { value: '∞', label: 'Revisions included', sub: 'Until you love it', icon: RefreshCw },
-]
-
-const FEATURES = [
-  { icon: Clock, title: 'Fast delivery', desc: 'Most projects delivered in 24–72h. Rush delivery available for urgent content.' },
-  { icon: Award, title: 'Premium quality', desc: 'Every edit is crafted by experienced video editors who know what converts.' },
-  { icon: TrendingUp, title: 'Results-driven', desc: 'We don\'t just make pretty videos — we make videos that grow accounts and sell.' },
-  { icon: Globe, title: 'Platform-native', desc: 'Deep knowledge of every platform\'s algorithm, format, and audience behavior.' },
-]
-
-function WhyUs() {
-  return (
-    <section className="py-28 relative overflow-hidden" style={{ background: '#F2EAE4' }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <FadeIn className="text-center mb-16">
-          <span className="section-label justify-center">Why shortcut</span>
-          <h2 className="font-display text-5xl md:text-6xl tracking-wide mb-4" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
-            THE UNFAIR<br />ADVANTAGE
-          </h2>
-        </FadeIn>
-
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
-          {STATS.map((s, i) => (
-            <FadeIn key={s.label} delay={i * 80}>
-              <div
-                className="p-6 rounded-2xl text-center"
-                style={{
-                  background: '#FFFFFF',
-                  border: '1px solid rgba(0,0,0,0.07)',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-4"
-                  style={{ background: 'rgba(104,69,236,0.1)', border: '1px solid rgba(104,69,236,0.18)' }}
-                >
-                  <s.icon size={18} style={{ color: '#6845EC' }} />
-                </div>
-                <div className="font-display text-4xl tracking-wide mb-1" style={{ color: '#2D4077' }}>{s.value}</div>
-                <div className="font-sans text-sm font-medium mb-0.5" style={{ color: 'rgba(17,24,39,0.7)' }}>{s.label}</div>
-                <div className="font-sans text-xs" style={{ color: 'rgba(17,24,39,0.35)' }}>{s.sub}</div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-
-        {/* Features grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {FEATURES.map((f, i) => (
-            <FadeIn key={f.title} delay={i * 80}>
-              <div
-                className="p-6 rounded-2xl flex gap-5 card-glow"
-                style={{
-                  background: '#FFFFFF',
-                  border: '1px solid rgba(0,0,0,0.07)',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-                  style={{ background: 'rgba(104,69,236,0.1)', border: '1px solid rgba(104,69,236,0.18)' }}
-                >
-                  <f.icon size={18} style={{ color: '#6845EC' }} />
-                </div>
-                <div>
-                  <h3 className="font-heading font-bold text-base mb-1.5" style={{ color: '#111827' }}>{f.title}</h3>
-                  <p className="font-sans text-sm leading-relaxed" style={{ color: 'rgba(17,24,39,0.45)' }}>{f.desc}</p>
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
+      <div
+        ref={overlayRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: '#FFFFFF',
+          pointerEvents: 'none',
+          zIndex: 9999,
+          opacity: 0,
+        }}
+      />
     </section>
   )
 }
@@ -1064,7 +1012,7 @@ function Portfolio() {
   }, [emblaApi])
 
   return (
-    <section id="portfolio" className="py-28" style={{ background: '#FAFAFA' }}>
+    <section id="portfolio" className="py-28" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
         <FadeIn className="flex flex-col md:flex-row md:items-end gap-4 justify-between mb-14">
           <div>
@@ -1262,7 +1210,6 @@ function StepVisual3() {
 const HOW_STEPS = [
   {
     n: '01',
-    tag: 'Step #1',
     title: 'Fill in our brief',
     short: "After working with 1,000+ properties, we've refined exactly what we need.",
     paras: [
@@ -1274,7 +1221,6 @@ const HOW_STEPS = [
   },
   {
     n: '02',
-    tag: 'Step #2',
     title: 'Receive your video',
     short: 'As soon as we receive your brief, our team starts working immediately.',
     paras: [
@@ -1286,7 +1232,6 @@ const HOW_STEPS = [
   },
   {
     n: '03',
-    tag: 'Step #3',
     title: 'Revise or finalize',
     short: 'Once your video is ready, you can review it and request any adjustments if needed.',
     paras: [
@@ -1300,7 +1245,7 @@ const HOW_STEPS = [
 
 function HowItWorks() {
   return (
-    <section className="py-28" style={{ background: '#FAFAFA' }}>
+    <section className="py-28" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
 
         {/* Header */}
@@ -1319,7 +1264,7 @@ function HowItWorks() {
 
         {/* Steps */}
         <div className="flex flex-col gap-32">
-          {HOW_STEPS.map(({ n, tag, title, short, paras, Visual, flip }) => (
+          {HOW_STEPS.map(({ n, title, short, paras, Visual, flip }) => (
             <div key={n} className={`grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${flip ? 'md:[direction:rtl]' : ''}`}>
 
               {/* Visual */}
@@ -1339,10 +1284,6 @@ function HowItWorks() {
                 {/* Step tag + number */}
                 <div className="flex items-center gap-4">
                   <span className="font-display text-8xl leading-none" style={{ color: 'rgba(104,69,236,0.12)', letterSpacing: '-0.04em' }}>{n}</span>
-                  <span className="font-sans font-semibold text-sm px-3 py-1 rounded-full"
-                    style={{ background: 'rgba(104,69,236,0.08)', color: '#6845EC', letterSpacing: '-0.02em' }}>
-                    {tag}
-                  </span>
                 </div>
 
                 <h3 className="font-sans font-bold" style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}>
@@ -1442,9 +1383,69 @@ const tcol1 = TESTIMONIALS.slice(0, 3)
 const tcol2 = TESTIMONIALS.slice(3, 6)
 const tcol3 = TESTIMONIALS.slice(6, 9)
 
+function TestimonialBannerJulie() {
+  return (
+    <section style={{ background: '#07070F' }} className="py-16 px-6">
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-14">
+        {/* Photo + identité */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-3 text-center">
+          <div
+            className="overflow-hidden rounded-2xl flex items-center justify-center"
+            style={{ width: 140, height: 160, border: '2px dashed rgba(255,255,255,0.2)', flexShrink: 0 }}
+          >
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>Image space</span>
+          </div>
+          <div>
+            <p
+              className="font-sans font-bold"
+              style={{ color: '#fff', fontSize: '1.15rem', letterSpacing: '-0.03em', lineHeight: 1.3 }}
+            >
+              Julie Martin
+            </p>
+            <p
+              className="font-sans"
+              style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', letterSpacing: '-0.02em' }}
+            >
+              Airbnb Host
+            </p>
+          </div>
+        </div>
+
+        {/* Séparateur vertical */}
+        <div
+          className="hidden md:block flex-shrink-0"
+          style={{ width: 1, height: 120, background: 'rgba(255,255,255,0.12)' }}
+        />
+
+        {/* Citation */}
+        <blockquote className="relative">
+          <span
+            aria-hidden="true"
+            className="font-display absolute"
+            style={{ top: '-0.5rem', left: '-0.2rem', fontSize: '4rem', color: '#6845EC', lineHeight: 1, opacity: 0.6 }}
+          >
+            "
+          </span>
+          <p
+            className="font-sans pl-8"
+            style={{
+              fontSize: 'clamp(1.1rem, 1.8vw, 1.45rem)',
+              color: '#ffffff',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.65,
+            }}
+          >
+            I wasn’t expecting such a difference. After publishing the video, my property quickly became one of the most viewed and highlighted listings in my area. The visibility and interest noticeably increased. Fast, clean, and highly effective.
+          </p>
+        </blockquote>
+      </div>
+    </section>
+  )
+}
+
 function Testimonials() {
   return (
-    <section className="py-28 relative overflow-hidden" style={{ background: '#FAFAFA' }}>
+    <section className="py-28 relative overflow-hidden" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1766,7 +1767,7 @@ function PricingCard({ plan, highlight }) {
 
 function Pricing() {
   return (
-    <section id="pricing" className="pt-28 pb-6" style={{ background: '#FAFAFA' }}>
+    <section id="pricing" className="pt-28 pb-6" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
         <FadeIn className="text-center mb-16">
           <span className="section-label justify-center">Pricing</span>
@@ -1793,25 +1794,6 @@ function Pricing() {
 /* ─────────────────────────────────────────
    TRUST BAR
 ───────────────────────────────────────── */
-function PaymentBadge({ children, bg = '#fff', color = '#111827' }) {
-  return (
-    <div
-      className="flex items-center justify-center rounded-md px-4 py-2 font-bold"
-      style={{
-        background: bg,
-        color,
-        border: '1px solid rgba(17,24,39,0.12)',
-        minWidth: 72,
-        height: 48,
-        fontSize: 17,
-        letterSpacing: '-0.02em',
-      }}
-    >
-      {children}
-    </div>
-  )
-}
-
 function BrandLogo({ icon, name }) {
   return (
     <div className="flex items-center gap-2" style={{ color: 'rgba(17,24,39,0.45)', fontSize: 16, fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}>
@@ -1836,7 +1818,7 @@ const BRAND_LOGOS = [
 
 function TrustBar() {
   return (
-    <section className="pt-6 pb-16" style={{ background: '#FAFAFA' }}>
+    <section className="pt-6 pb-16" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
 
         {/* CTA Button — full width of pricing grid, rectangular, white bg */}
@@ -1862,47 +1844,86 @@ function TrustBar() {
             100% Risk-Free Satisfaction Guarantee
           </p>
           <p className="font-sans mt-1 max-w-lg mx-auto" style={{ fontSize: 16, color: 'rgba(17,24,39,0.45)', letterSpacing: '-0.02em', lineHeight: 1.6 }}>
-            We're committed to your success. If you're not completely thrilled with your logo, we'll keep working until you are, or provide a full refund.
+            We're committed to your success. If you're not completely satisfied with your video,<br />we'll keep refining it until it meets your expectations, or provide a full refund.
           </p>
         </div>
 
         {/* Payment Logos */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <PaymentBadge color="#1A1F71"><span style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 17 }}>VISA</span></PaymentBadge>
-          <PaymentBadge>
-            {/* Mastercard placeholder */}
-            <span style={{ opacity: 0.25, fontSize: 15 }}>——</span>
-          </PaymentBadge>
-          <PaymentBadge bg="#016FD0" color="#fff"><span style={{ fontSize: 15, fontWeight: 900 }}>AMEX</span></PaymentBadge>
-          <PaymentBadge><span style={{ color: '#6772E5', fontWeight: 700, fontSize: 16 }}>stripe</span></PaymentBadge>
-          <PaymentBadge>
-            <span style={{ color: '#003087', fontWeight: 900, fontSize: 15 }}>JCB</span>
-          </PaymentBadge>
-          <PaymentBadge>
-            <span style={{ color: '#003087', fontWeight: 700, fontSize: 15 }}>Pay</span>
-            <span style={{ color: '#009cde', fontWeight: 700, fontSize: 15 }}>Pal</span>
-          </PaymentBadge>
-          <PaymentBadge>
-            <span style={{ fontWeight: 500, fontSize: 15, color: '#111827' }}>G</span>
-            <span style={{ fontWeight: 500, fontSize: 15, color: '#111827', marginLeft: 2 }}>Pay</span>
-          </PaymentBadge>
-          <PaymentBadge>
-            <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>&#xf8ff; Pay</span>
-          </PaymentBadge>
-          <PaymentBadge>
-            {/* Bancontact placeholder */}
-            <span style={{ opacity: 0.25, fontSize: 15 }}>——</span>
-          </PaymentBadge>
-        </div>
-
-        {/* Brand Logos */}
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 w-full">
-          {BRAND_LOGOS.map((b) => (
-            <BrandLogo key={b.name} icon={b.icon} name={b.name} />
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {[
+            { src: '/logos paiements/Visa_Inc._logo_(2021–present).svg.png', alt: 'Visa' },
+            { src: '/logos paiements/MasterCard_Logo.svg.png', alt: 'Mastercard' },
+            { src: '/logos paiements/Amex Card.png', alt: 'American Express' },
+            { src: '/logos paiements/Stripe_Logo,_revised_2016.svg.png', alt: 'Stripe' },
+            { src: '/logos paiements/Paypal_2014_logo.png', alt: 'PayPal' },
+            { src: '/logos paiements/Google_Pay_Logo.svg.png', alt: 'Google Pay' },
+            { src: '/logos paiements/Apple_Pay_logo.svg.png', alt: 'Apple Pay' },
+          ].map(({ src, alt }) => (
+            <div
+              key={alt}
+              style={{
+                background: '#fff',
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 8,
+                padding: '8px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 90,
+                height: 52,
+              }}
+            >
+              <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            </div>
           ))}
         </div>
 
       </div>
+
+      {/* Team Section */}
+      <div className="max-w-7xl mx-auto px-6 pt-20 pb-28">
+        <h2 className="font-sans font-bold text-4xl mb-2" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
+          Get to know our team &amp; designers
+        </h2>
+        <p className="font-sans mb-12" style={{ fontSize: 16, color: 'rgba(17,24,39,0.45)', letterSpacing: '-0.02em' }}>
+          Thousands of projects successfully delivered thanks to the passion and dedication of our team
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          {[
+            { role: 'Your project manager', name: 'Prénom Nom', desc: 'Texte à remplir' },
+            { role: 'Our co-creative director', name: 'Prénom Nom', desc: 'Texte à remplir' },
+            { role: 'Brand designer', name: 'Prénom Nom', desc: 'Texte à remplir' },
+            { role: 'Brand designer', name: 'Prénom Nom', desc: 'Texte à remplir' },
+            { role: 'Content & Strategy Guru', name: 'Prénom Nom', desc: 'Texte à remplir' },
+            { role: 'CEO and co-creative director', name: 'Prénom Nom', desc: 'Texte à remplir' },
+          ].map((member, i) => (
+            <div key={i} className="flex flex-col gap-3">
+              {/* Photo placeholder */}
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '3/4',
+                  background: 'rgba(17,24,39,0.07)',
+                  borderRadius: 12,
+                }}
+              />
+              <div>
+                <p className="font-sans text-xs" style={{ color: 'rgba(17,24,39,0.4)', letterSpacing: '-0.01em', marginBottom: 2 }}>
+                  {member.role}
+                </p>
+                <p className="font-sans font-bold text-base" style={{ color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+                  {member.name}
+                </p>
+                <p className="font-sans text-xs leading-snug" style={{ color: 'rgba(17,24,39,0.45)', letterSpacing: '-0.01em' }}>
+                  {member.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </section>
   )
 }
@@ -1928,7 +1949,7 @@ function FinalCTA() {
           </span>
         </FadeIn>
         <FadeIn delay={80}>
-          <h2 className="font-display text-[clamp(3rem,8vw,6rem)] tracking-wide leading-[0.92] mb-6" style={{ color: '#FAFAFA', letterSpacing: '-0.05em' }}>
+          <h2 className="font-display text-[clamp(3rem,8vw,6rem)] tracking-wide leading-[0.92] mb-6" style={{ color: '#FFFFFF', letterSpacing: '-0.05em' }}>
             READY TO UPGRADE<br />
             <span style={{ color: '#F2EAE4' }}>YOUR VIDEOS?</span>
           </h2>
@@ -1978,7 +1999,7 @@ function FinalCTA() {
 ───────────────────────────────────────── */
 function Footer() {
   return (
-    <footer style={{ background: '#FAFAFA', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
+    <footer style={{ background: '#FFFFFF', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
       <div className="max-w-7xl mx-auto px-6 py-14">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
           {/* Brand */}
@@ -2082,18 +2103,27 @@ function Footer() {
    APP
 ───────────────────────────────────────── */
 export default function App() {
+  const { user } = useAuth()
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authDefaultView, setAuthDefaultView] = useState('signin')
+
+  function openAuth(view = 'signin') {
+    setAuthDefaultView(view)
+    setAuthOpen(true)
+  }
+
   return (
-    <div style={{ background: '#FAFAFA', minHeight: '100vh' }}>
-      <Hero />
-      <Marquee />
+    <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
+      <AuthOverlay open={authOpen} onClose={() => setAuthOpen(false)} defaultView={authDefaultView} />
+      <Hero user={user} onOpenAuth={openAuth} />
       <Targets />
       <Services />
+      <TestimonialBanner />
       <ValueProps />
       <ZoomParallaxSection />
-      <Process />
-      <WhyUs />
       <Portfolio />
       <HowItWorks />
+      <TestimonialBannerJulie />
       <Testimonials />
       <Pricing />
       <TrustBar />

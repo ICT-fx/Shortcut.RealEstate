@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  --bg: #FAFAFA;
+  --bg: #FFFFFF;
   --surface: #FFFFFF;
   --card: #FFFFFF;
   --violet: #6845EC;
@@ -147,6 +147,11 @@ body::after {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(28px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes fadeIn {
