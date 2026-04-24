@@ -1395,7 +1395,7 @@ function TestimonialBannerJulie() {
             style={{ width: 140, height: 160, flexShrink: 0 }}
           >
             <img
-              src="/julie-martin.jpg"
+              src="/Julie.png"
               alt="Julie Martin"
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
             />
