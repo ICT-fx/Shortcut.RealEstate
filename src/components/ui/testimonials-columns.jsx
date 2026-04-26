@@ -15,8 +15,8 @@ export function TestimonialsColumn({ className = '', testimonials, duration = 10
               <div
                 key={i}
                 className="p-8 rounded-3xl w-full"
-              style={{ minWidth: 340 }}
                 style={{
+                  minWidth: 340,
                   background: '#fff',
                   border: '1px solid rgba(0,0,0,0.07)',
                   boxShadow: '0 4px 24px rgba(104,69,236,0.07)',

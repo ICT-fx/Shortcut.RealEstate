@@ -47,39 +47,38 @@ const SLOTS = [
   {
     // i=0 — top wide — RIGHT of image (image ends 72.5vw) [unchanged]
     phrase: ['Make your property look ', '10x', ' more attractive'],
-    style: { top: '7vh', left: '74vw', width: '17vw', textAlign: 'left' },
+    style: { top: '7vh', left: '77vw', width: '16vw', textAlign: 'left' },
     size: '1.5vw',
   },
   {
-    // i=1 — left tall — ABOVE image, aligned with image left edge (15vw)
-    // image: 15→35vw, 14→66vh
+    // i=1 — left tall — ABOVE image, aligned with image left edge (8vw)
     phrase: ['Increase your bookings', ' instantly', ''],
-    style: { top: '7vh', left: '15vw', width: '22vw', textAlign: 'left' },
+    style: { top: '7vh', left: '8vw', width: '22vw', textAlign: 'left' },
     size: '1.5vw',
   },
   {
     // i=2 — right centre — ABOVE image, upper-right column (right of i=0)
     // image: 65→90vw, 37.5→62.5vh — label at 74vw avoids i=0 (ends 72.5vw)
     phrase: ['Turn views into ', 'real bookings', ''],
-    style: { top: '30vh', left: '74vw', width: '17vw', textAlign: 'left' },
+    style: { top: '30vh', left: '77vw', width: '16vw', textAlign: 'left' },
     size: '1.5vw',
   },
   {
     // i=3 — lower centre — ABOVE image, aligned left (image: 45→65vw, starts 71.5vh)
     phrase: ['Sell your property', ' faster', ''],
-    style: { top: '67vh', left: '45vw', width: '20vw', textAlign: 'left' },
+    style: { top: '67vh', left: '42vw', width: '20vw', textAlign: 'left' },
     size: '1.5vw',
   },
   {
     // i=4 — lower left — ABOVE image, aligned left (image: 12.5→42.5vw, starts 71.5vh)
     phrase: ['Stand out in', ' crowded platforms', ''],
-    style: { top: '67vh', left: '12.5vw', width: '29vw', textAlign: 'left' },
+    style: { top: '67vh', left: '5vw', width: '31vw', textAlign: 'left' },
     size: '1.5vw',
   },
   {
     // i=5 — lower right — ABOVE image, aligned left (image: 66→84vw, starts 71.5vh)
     phrase: ["Increase your property\u2019s", ' perceived value', ''],
-    style: { top: '64vh', left: '66vw', width: '22vw', textAlign: 'left' },
+    style: { top: '64vh', left: '65vw', width: '22vw', textAlign: 'left' },
     size: '1.5vw',
   },
 ];
@@ -186,12 +185,12 @@ export function ZoomParallax({ images = [] }) {
               key={i}
               style={{ scale, willChange: 'transform' }}
               className={`absolute top-0 flex h-full w-full items-center justify-center
-                ${i === 0 ? '[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]' : ''}
-                ${i === 1 ? '[&>div]:!-top-[10vh] [&>div]:!-left-[25vw] [&>div]:!h-[52vh] [&>div]:!w-[20vw]' : ''}
-                ${i === 2 ? '[&>div]:!left-[27.5vw] [&>div]:!h-[25vh] [&>div]:!w-[25vw]' : ''}
-                ${i === 3 ? '[&>div]:!top-[34vh] [&>div]:!left-[5vw] [&>div]:!h-[25vh] [&>div]:!w-[20vw]' : ''}
-                ${i === 4 ? '[&>div]:!top-[34vh] [&>div]:!-left-[22.5vw] [&>div]:!h-[25vh] [&>div]:!w-[30vw]' : ''}
-                ${i === 5 ? '[&>div]:!top-[33.5vh] [&>div]:!left-[30vw] [&>div]:!h-[21vh] [&>div]:!w-[28vw] [&>div>img]:!object-bottom' : ''}
+                ${i === 0 ? '[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[40vw]' : ''}
+                ${i === 1 ? '[&>div]:!-top-[10vh] [&>div]:!-left-[30vw] [&>div]:!h-[52vh] [&>div]:!w-[24vw]' : ''}
+                ${i === 2 ? '[&>div]:!left-[30vw] [&>div]:!h-[25vh] [&>div]:!w-[28vw]' : ''}
+                ${i === 3 ? '[&>div]:!top-[34vh] [&>div]:!left-[2vw] [&>div]:!h-[25vh] [&>div]:!w-[22vw]' : ''}
+                ${i === 4 ? '[&>div]:!top-[34vh] [&>div]:!-left-[28vw] [&>div]:!h-[25vh] [&>div]:!w-[33vw]' : ''}
+                ${i === 5 ? '[&>div]:!top-[33.5vh] [&>div]:!left-[30vw] [&>div]:!h-[21vh] [&>div]:!w-[30vw] [&>div>img]:!object-bottom' : ''}
               `}
             >
               <div className="relative h-[25vh] w-[25vw] overflow-hidden rounded-xl">
@@ -207,6 +206,7 @@ export function ZoomParallax({ images = [] }) {
             </motion.div>
           );
         })}
+
 
       </div>
     </div>

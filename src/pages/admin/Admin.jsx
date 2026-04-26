@@ -30,9 +30,12 @@ export default function Admin() {
     <div style={{ minHeight: '100vh', background: '#07070F', fontFamily: 'DM Sans, sans-serif', padding: '40px 32px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <h1 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.04em', margin: 0 }}>
-            3D Models
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <a href="/" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', textDecoration: 'none' }}>← Site</a>
+            <h1 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.04em', margin: 0 }}>
+              3D Models
+            </h1>
+          </div>
           <button
             onClick={() => navigate('/admin/models/new')}
             style={{ background: '#6845EC', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '0.9rem', letterSpacing: '-0.02em', cursor: 'pointer' }}

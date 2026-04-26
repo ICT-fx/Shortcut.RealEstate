@@ -8,7 +8,6 @@ export function Hotspots({ rooms, activeRoom }) {
       <Html
         key={room.name}
         position={room.camera_target}
-        occlude
         style={{ pointerEvents: 'none', userSelect: 'none' }}
         center
       >
