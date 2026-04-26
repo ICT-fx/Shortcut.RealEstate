@@ -18,11 +18,9 @@ export function WalkControls({ enabled, cameraRef, onUserMove }) {
       return
     }
 
-    // Snap camera to eye height on entry if it's awkward
+    // Always snap camera to eye height on entry
     if (!snapped.current) {
-      if (camera.position.y < 0.3 || camera.position.y > 5) {
-        camera.position.y = EYE_HEIGHT
-      }
+      camera.position.y = EYE_HEIGHT
       euler.current.setFromQuaternion(camera.quaternion)
       snapped.current = true
     }
