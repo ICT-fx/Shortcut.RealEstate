@@ -1,9 +1,8 @@
-import { Suspense, useState, useRef } from 'react'
+import { Suspense, useState, useRef, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import { useViewer } from './useViewer'
 import { CameraController } from './CameraController'
-import { Hotspots } from './Hotspots'
 import { RoomNav } from './RoomNav'
 import { WalkControls } from './WalkControls'
 
@@ -16,17 +15,13 @@ function Model({ url }) {
 function Spinner({ height }) {
   return (
     <div style={{
-      width: '100%',
-      height,
+      width: '100%', height,
       background: 'linear-gradient(135deg, #0d0d1a 0%, #111827 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
       borderRadius: 16,
     }}>
       <div style={{
-        width: 32,
-        height: 32,
+        width: 32, height: 32,
         border: '3px solid rgba(255,255,255,0.08)',
         borderTop: '3px solid rgba(255,255,255,0.55)',
         borderRadius: '50%',
@@ -46,9 +41,14 @@ export function Viewer3D({
   editorMode = false,
   onSavePosition,
 }) {
-  const { activeRoom, flyToRoom, controlsRef, targetPos, targetLookAt, animating } = useViewer()
+  const { activeRoom, activeRoomData, flyToRoom, clearActiveRoom, controlsRef, targetPos, targetLookAt, animating } = useViewer()
   const [walkMode, setWalkMode] = useState(false)
-  const walkCameraRef = useRef(null) // filled by WalkControls each frame
+  const walkCameraRef = useRef(null)
+
+  // Called on any user-initiated camera move — hides the room info card
+  const handleUserMove = useCallback(() => {
+    clearActiveRoom()
+  }, [clearActiveRoom])
 
   function handleCapture() {
     if (!onSavePosition) return
@@ -60,16 +60,8 @@ export function Viewer3D({
     if (!controlsRef.current) return
     const cam = controlsRef.current.object
     onSavePosition({
-      camera_position: [
-        parseFloat(cam.position.x.toFixed(3)),
-        parseFloat(cam.position.y.toFixed(3)),
-        parseFloat(cam.position.z.toFixed(3)),
-      ],
-      camera_target: [
-        parseFloat(controlsRef.current.target.x.toFixed(3)),
-        parseFloat(controlsRef.current.target.y.toFixed(3)),
-        parseFloat(controlsRef.current.target.z.toFixed(3)),
-      ],
+      camera_position: [+cam.position.x.toFixed(3), +cam.position.y.toFixed(3), +cam.position.z.toFixed(3)],
+      camera_target: [+controlsRef.current.target.x.toFixed(3), +controlsRef.current.target.y.toFixed(3), +controlsRef.current.target.z.toFixed(3)],
     })
   }
 
@@ -78,19 +70,11 @@ export function Viewer3D({
 
   return (
     <div style={{
-      position: 'relative',
-      width: '100%',
-      height: responsiveHeight,
-      borderRadius: 16,
-      overflow: 'hidden',
-      background: '#0d0d1a',
+      position: 'relative', width: '100%', height: responsiveHeight,
+      borderRadius: 16, overflow: 'hidden', background: '#0d0d1a',
     }}>
       <Suspense fallback={<Spinner height={responsiveHeight} />}>
-        <Canvas
-          camera={{ position: [5, 3, 8], fov: 55 }}
-          style={{ width: '100%', height: '100%' }}
-          shadows
-        >
+        <Canvas camera={{ position: [5, 3, 8], fov: 55 }} style={{ width: '100%', height: '100%' }} shadows>
           <ambientLight intensity={0.7} />
           <directionalLight position={[10, 10, 5]} intensity={1.2} castShadow />
           <Model url={glbUrl} />
@@ -98,10 +82,11 @@ export function Viewer3D({
           {!walkMode && (
             <OrbitControls
               ref={controlsRef}
-              enablePan={true}
+              enablePan
               maxPolarAngle={Math.PI / 1.8}
               minDistance={1}
               maxDistance={30}
+              onChange={() => handleUserMove()}
             />
           )}
 
@@ -112,48 +97,64 @@ export function Viewer3D({
             animating={animating}
           />
 
-          <WalkControls enabled={walkMode} cameraRef={walkCameraRef} />
-
-          {showHotspots && rooms.length > 0 && (
-            <Hotspots rooms={rooms} activeRoom={activeRoom} />
-          )}
+          <WalkControls enabled={walkMode} cameraRef={walkCameraRef} onUserMove={handleUserMove} />
         </Canvas>
       </Suspense>
 
+      {/* Room info card — shows only for active room, dismissed on camera move */}
+      {showHotspots && activeRoomData && (
+        <div style={{
+          position: 'absolute',
+          bottom: rooms.length > 0 ? 64 : 16,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(7,7,15,0.88)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          borderRadius: 12,
+          padding: '10px 20px',
+          color: '#fff',
+          fontFamily: 'DM Sans, sans-serif',
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          letterSpacing: '-0.02em',
+          whiteSpace: 'nowrap',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          zIndex: 10,
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}>
+          <span>{activeRoomData.name}</span>
+          {activeRoomData.area_m2 && (
+            <>
+              <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.2)' }} />
+              <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>{activeRoomData.area_m2} m²</span>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Mode toggle */}
       <div style={{
-        position: 'absolute',
-        top: 12,
-        left: 12,
+        position: 'absolute', top: 12, left: 12,
         display: 'flex',
         background: 'rgba(7,7,15,0.75)',
         border: '1px solid rgba(255,255,255,0.12)',
-        borderRadius: 100,
-        padding: 3,
-        zIndex: 10,
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        borderRadius: 100, padding: 3, zIndex: 10,
+        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
       }}>
-        {[
-          { key: false, label: '⊙ Orbit' },
-          { key: true,  label: '↖ Walk' },
-        ].map(({ key, label }) => (
+        {[{ key: false, label: '⊙ Orbit' }, { key: true, label: '↖ Walk' }].map(({ key, label }) => (
           <button
             key={String(key)}
             onClick={() => setWalkMode(key)}
             style={{
               background: walkMode === key ? 'rgba(255,255,255,0.15)' : 'transparent',
               color: walkMode === key ? '#fff' : 'rgba(255,255,255,0.4)',
-              border: 'none',
-              borderRadius: 100,
-              padding: '4px 14px',
-              fontFamily: 'DM Sans, sans-serif',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-              letterSpacing: '-0.02em',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap',
+              border: 'none', borderRadius: 100, padding: '4px 14px',
+              fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '0.75rem',
+              letterSpacing: '-0.02em', cursor: 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap',
             }}
           >
             {label}
@@ -164,25 +165,15 @@ export function Viewer3D({
       {/* Walk mode hint */}
       {walkMode && (
         <div style={{
-          position: 'absolute',
-          top: 12,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(7,7,15,0.75)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 8,
-          padding: '5px 14px',
-          color: 'rgba(255,255,255,0.5)',
-          fontFamily: 'DM Sans, sans-serif',
-          fontSize: '0.72rem',
-          fontWeight: 500,
-          letterSpacing: '-0.01em',
-          whiteSpace: 'nowrap',
-          zIndex: 10,
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(7,7,15,0.75)', border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 8, padding: '5px 14px',
+          color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans, sans-serif',
+          fontSize: '0.72rem', fontWeight: 500, letterSpacing: '-0.01em',
+          whiteSpace: 'nowrap', zIndex: 10,
+          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
         }}>
-          WASD / flèches pour avancer · Clic + glisser pour regarder
+          WASD / ↑↓←→ · Q/E hauteur · Clic + glisser pour regarder
         </div>
       )}
 
@@ -199,20 +190,11 @@ export function Viewer3D({
         <button
           onClick={handleCapture}
           style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            background: '#6845EC',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: '8px 14px',
-            fontFamily: 'DM Sans, sans-serif',
-            fontWeight: 600,
-            fontSize: '0.82rem',
-            letterSpacing: '-0.02em',
-            cursor: 'pointer',
-            zIndex: 10,
+            position: 'absolute', top: 12, right: 12,
+            background: '#6845EC', color: '#fff', border: 'none',
+            borderRadius: 8, padding: '8px 14px',
+            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '0.82rem',
+            letterSpacing: '-0.02em', cursor: 'pointer', zIndex: 10,
           }}
         >
           Capture position

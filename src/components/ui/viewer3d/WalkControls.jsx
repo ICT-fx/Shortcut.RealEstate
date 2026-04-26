@@ -2,22 +2,35 @@ import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export function WalkControls({ enabled, cameraRef }) {
+const EYE_HEIGHT = 1.6 // metres
+
+export function WalkControls({ enabled, cameraRef, onUserMove }) {
   const { camera, gl } = useThree()
   const keys = useRef({})
   const mouseDown = useRef(false)
   const lastMouse = useRef({ x: 0, y: 0 })
   const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'))
+  const snapped = useRef(false)
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) {
+      snapped.current = false
+      return
+    }
+
+    // Snap camera to eye height on entry if it's awkward
+    if (!snapped.current) {
+      if (camera.position.y < 0.3 || camera.position.y > 5) {
+        camera.position.y = EYE_HEIGHT
+      }
+      euler.current.setFromQuaternion(camera.quaternion)
+      snapped.current = true
+    }
 
     function onKeyDown(e) {
       keys.current[e.key] = true
-      // Prevent arrow keys from scrolling the page
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault()
-      }
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault()
+      if (onUserMove) onUserMove()
     }
     function onKeyUp(e) { keys.current[e.key] = false }
 
@@ -35,17 +48,16 @@ export function WalkControls({ enabled, cameraRef }) {
       const dx = e.clientX - lastMouse.current.x
       const dy = e.clientY - lastMouse.current.y
       lastMouse.current = { x: e.clientX, y: e.clientY }
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return
       euler.current.setFromQuaternion(camera.quaternion)
       euler.current.y -= dx * 0.003
       euler.current.x -= dy * 0.003
       euler.current.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, euler.current.x))
       camera.quaternion.setFromEuler(euler.current)
+      if (onUserMove) onUserMove()
     }
 
-    // Sync initial euler from current camera orientation
-    euler.current.setFromQuaternion(camera.quaternion)
     gl.domElement.style.cursor = 'grab'
-
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
     gl.domElement.addEventListener('mousedown', onMouseDown)
@@ -61,11 +73,12 @@ export function WalkControls({ enabled, cameraRef }) {
       window.removeEventListener('mouseup', onMouseUp)
       window.removeEventListener('mousemove', onMouseMove)
     }
-  }, [enabled, camera, gl])
+  }, [enabled, camera, gl, onUserMove])
 
   useFrame((_, delta) => {
     if (!enabled) return
     const speed = 4 * delta
+    const vSpeed = 2 * delta
 
     const forward = new THREE.Vector3()
     camera.getWorldDirection(forward)
@@ -80,6 +93,8 @@ export function WalkControls({ enabled, cameraRef }) {
     if (k['s'] || k['S'] || k['ArrowDown'])  camera.position.addScaledVector(forward, -speed)
     if (k['a'] || k['A'] || k['ArrowLeft'])  camera.position.addScaledVector(right, -speed)
     if (k['d'] || k['D'] || k['ArrowRight']) camera.position.addScaledVector(right, speed)
+    if (k['q'] || k['Q'] || k[' '])         camera.position.y += vSpeed
+    if (k['e'] || k['E'])                   camera.position.y -= vSpeed
 
     // Expose current camera state for capture
     if (cameraRef) {
@@ -87,8 +102,8 @@ export function WalkControls({ enabled, cameraRef }) {
       camera.getWorldDirection(lookTarget)
       lookTarget.multiplyScalar(2).add(camera.position)
       cameraRef.current = {
-        position: [parseFloat(camera.position.x.toFixed(3)), parseFloat(camera.position.y.toFixed(3)), parseFloat(camera.position.z.toFixed(3))],
-        target: [parseFloat(lookTarget.x.toFixed(3)), parseFloat(lookTarget.y.toFixed(3)), parseFloat(lookTarget.z.toFixed(3))],
+        position: [+camera.position.x.toFixed(3), +camera.position.y.toFixed(3), +camera.position.z.toFixed(3)],
+        target: [+lookTarget.x.toFixed(3), +lookTarget.y.toFixed(3), +lookTarget.z.toFixed(3)],
       }
     }
   })
