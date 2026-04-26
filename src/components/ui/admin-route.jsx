@@ -8,14 +8,17 @@ export default function AdminRoute({ children }) {
   const navigate = useNavigate()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      const isAdmin = user?.app_metadata?.is_admin === true
-      if (!isAdmin) {
-        navigate('/', { replace: true })
-      } else {
-        setAllowed(true)
-      }
-      setChecking(false)
+    // Refresh session so app_metadata claims in JWT are up to date
+    supabase.auth.refreshSession().then(() => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        const isAdmin = user?.app_metadata?.is_admin === true
+        if (!isAdmin) {
+          navigate('/', { replace: true })
+        } else {
+          setAllowed(true)
+        }
+        setChecking(false)
+      })
     })
   }, [navigate])
 
