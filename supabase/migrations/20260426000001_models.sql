@@ -25,12 +25,12 @@ create policy "clients read own model"
     )
   );
 
--- Admins can do everything
+-- Admins can do everything (app_metadata is service-role only, safe for auth)
 create policy "admins manage models"
   on models
   using (
-    (auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean = true
+    (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true
   )
   with check (
-    (auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean = true
+    (auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean = true
   );

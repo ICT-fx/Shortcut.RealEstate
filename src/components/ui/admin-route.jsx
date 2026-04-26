@@ -9,7 +9,7 @@ export default function AdminRoute({ children }) {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      const isAdmin = user?.user_metadata?.is_admin === true
+      const isAdmin = user?.app_metadata?.is_admin === true
       if (!isAdmin) {
         navigate('/', { replace: true })
       } else {
