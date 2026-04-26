@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { STATUS_COLORS } from '../lib/constants'
 import { BookingOverlay } from '../components/ui/booking-overlay'
+import { Viewer3D } from '../components/ui/viewer3d/Viewer3D'
 import { ArrowLeft, MessageSquare, FolderOpen, Calendar, Send } from 'lucide-react'
 
 export default function OrderWorkspace() {
@@ -11,6 +12,7 @@ export default function OrderWorkspace() {
   const [order, setOrder] = useState(null)
   const [tab, setTab] = useState('chat')
   const [bookingOpen, setBookingOpen] = useState(false)
+  const [model3d, setModel3d] = useState(undefined) // undefined = loading, null = none
 
   useEffect(() => {
     supabase
@@ -19,6 +21,17 @@ export default function OrderWorkspace() {
       .eq('id', orderId)
       .single()
       .then(({ data }) => setOrder(data))
+  }, [orderId])
+
+  useEffect(() => {
+    if (!orderId) return
+    supabase
+      .from('models')
+      .select('glb_url, rooms')
+      .eq('order_id', orderId)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => setModel3d(data ?? null))
   }, [orderId])
 
   if (!order) {
@@ -77,6 +90,7 @@ export default function OrderWorkspace() {
         {[
           { key: 'chat', label: 'Chat', icon: <MessageSquare size={15} /> },
           { key: 'files', label: 'Files', icon: <FolderOpen size={15} /> },
+          ...(model3d !== null ? [{ key: '3dtour', label: '3D Tour', icon: null }] : []),
         ].map(t => (
           <button
             key={t.key}
@@ -99,6 +113,27 @@ export default function OrderWorkspace() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {tab === 'chat' && <ChatTab orderId={orderId} />}
         {tab === 'files' && <FilesTab orderId={orderId} />}
+        {tab === '3dtour' && (
+          <div style={{ flex: 1, padding: '24px', overflow: 'auto' }}>
+            {model3d === undefined ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 400 }}>
+                <div style={{ width: 28, height: 28, border: '3px solid rgba(104,69,236,0.15)', borderTop: '3px solid #6845EC', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              </div>
+            ) : model3d ? (
+              <Viewer3D
+                glbUrl={model3d.glb_url}
+                rooms={model3d.rooms ?? []}
+                height={520}
+                accentColor="#6845EC"
+                showHotspots
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, color: 'rgba(17,24,39,0.4)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem', letterSpacing: '-0.02em' }}>
+                Your 3D tour will be available soon.
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
