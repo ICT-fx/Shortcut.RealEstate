@@ -7,6 +7,7 @@ import { Hotspots } from './Hotspots'
 import { RoomNav } from './RoomNav'
 
 function Model({ url }) {
+  if (!url) return null
   const { scene } = useGLTF(url)
   return <primitive object={scene} />
 }
@@ -40,7 +41,7 @@ export function Viewer3D({
   rooms = [],
   height = 500,
   showHotspots = true,
-  accentColor = '#03A63C',
+  accentColor = '#6845EC',
   editorMode = false,
   onSavePosition,
 }) {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { Viewer3D } from '../../components/ui/viewer3d/Viewer3D'
@@ -155,7 +155,7 @@ function StepRooms({ model, onDone }) {
         )}
 
         {rooms.map((room, i) => (
-          <div key={i} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div key={room.name} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '-0.02em' }}>{room.name}</div>
               {room.area_m2 && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>{room.area_m2}m²</div>}
@@ -213,13 +213,13 @@ function StepAssign({ model, onDone }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
-  useState(() => {
+  useEffect(() => {
     supabase
       .from('orders')
       .select('id, title')
       .order('created_at', { ascending: false })
       .then(({ data }) => setOrders(data ?? []))
-  })
+  }, [])
 
   async function handlePublish() {
     setSaving(true)

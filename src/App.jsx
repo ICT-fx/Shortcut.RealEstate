@@ -964,7 +964,7 @@ function Viewer3DSection({ accent }) {
       .select('glb_url, rooms, name')
       .eq('is_demo', true)
       .limit(1)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         setDemoModel(data ?? null)
         setLoading(false)

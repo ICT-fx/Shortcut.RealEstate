@@ -131,7 +131,7 @@ export default function AdminModelEdit() {
 
             <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
               {rooms.map((room, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div key={room.name} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '-0.02em' }}>{room.name}</div>
                     {room.area_m2 && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem' }}>{room.area_m2}m²</div>}
