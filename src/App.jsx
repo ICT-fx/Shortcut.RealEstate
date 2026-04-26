@@ -14,6 +14,8 @@ import { TestimonialsColumn } from './components/ui/testimonials-columns'
 import { useAuth } from './lib/useAuth'
 import { AuthOverlay } from './components/ui/auth-overlay'
 import { BookingOverlay } from './components/ui/booking-overlay'
+import { Viewer3D } from './components/ui/viewer3d/Viewer3D'
+import { supabase } from './lib/supabase'
 
 /* ─────────────────────────────────────────
    UTILITIES
@@ -62,9 +64,282 @@ function navigateTo(sectionId) {
 }
 
 /* ─────────────────────────────────────────
+   MODE TOGGLE
+───────────────────────────────────────── */
+function ModeToggle({ mode, onSwitch }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        background: 'rgba(255,255,255,0.09)',
+        borderRadius: 100,
+        padding: '3px',
+        border: '1px solid rgba(255,255,255,0.12)',
+      }}
+    >
+      {[
+        { key: 'shortcut', label: 'Shortcut', accent: '#6845EC' },
+        { key: 'preview', label: 'Preview', accent: '#03A63C' },
+      ].map(({ key, label, accent }) => (
+        <button
+          key={key}
+          onClick={() => onSwitch(key)}
+          style={{
+            borderRadius: 100,
+            padding: '5px 16px',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            letterSpacing: '-0.02em',
+            fontFamily: 'DM Sans, sans-serif',
+            background: mode === key ? accent : 'transparent',
+            color: mode === key ? '#fff' : 'rgba(255,255,255,0.4)',
+            transition: 'all 0.25s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────
+   PREVIEW CONTENT DATA
+───────────────────────────────────────── */
+const PREVIEW_BELIEF_BULLETS = [
+  { left: 'Sell before construction starts', right: 'Help buyers visualize instantly' },
+  { left: 'Increase perceived project value', right: 'Improve your project marketing' },
+  { left: 'No generic renders, premium visuals', right: 'Top 1% 3D artists worldwide', rightAccent: true },
+]
+
+const PREVIEW_COMPARISON_LEFT = [
+  'Static floor plans',
+  'Hard to visualize unbuilt space',
+  'Slower pre-sales',
+]
+const PREVIEW_COMPARISON_RIGHT = [
+  'Photo-realistic 3D renders',
+  'Immersive interactive walkthroughs',
+  'Built to sell off-plan',
+]
+
+const PREVIEW_PORTFOLIO_ITEMS = [
+  {
+    id: 1,
+    title: 'Luxury Residences — Off-plan · Lyon',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Logo%20Exported.mp4',
+  },
+  {
+    id: 2,
+    title: 'Modern Tower — Pre-sale · Paris',
+    image: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Animation%20Exported%20(4).mp4',
+  },
+  {
+    id: 3,
+    title: 'Seaside Villas — CGI · Côte d\'Azur',
+    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Illustration%20Exported%20(1).mp4',
+  },
+  {
+    id: 4,
+    title: 'Mixed-Use Development · Bordeaux',
+    image: 'https://images.unsplash.com/photo-1503174971373-b1f69850bded?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Art%20Direction%20Exported.mp4',
+  },
+  {
+    id: 5,
+    title: 'Penthouse Collection — Walkthrough · Monaco',
+    image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=800&fit=crop',
+    video: 'https://static.cdn-luma.com/files/58ab7363888153e3/Product%20Video.mp4',
+  },
+]
+
+const PREVIEW_TESTIMONIALS = [
+  {
+    text: 'The 3D renders Shortcut Preview created for our off-plan project were indistinguishable from real photos. We sold 70% of units before breaking ground.',
+    name: 'Alexandre Moreau',
+    role: 'CEO, Moreau Développement · Lyon',
+    initials: 'AM',
+    color: '#03A63C',
+  },
+  {
+    text: 'Buyers kept asking if the interior photos were real — they had no idea the building wasn\'t finished yet. That\'s how good these renders are.',
+    name: 'Sophie Renard',
+    role: 'Sales Director, Nexus Immobilier',
+    initials: 'SR',
+    color: '#2D4077',
+  },
+  {
+    text: 'We used the virtual walkthrough at our sales launch event. Every single visitor wanted to book a unit. The experience is truly immersive.',
+    name: 'Thomas Girard',
+    role: 'Architect · TGA Studio, Paris',
+    initials: 'TG',
+    color: '#03A63C',
+  },
+  {
+    text: 'Our investors were blown away by the cinematic preview video. It conveyed the full vision of the project better than any pitch deck ever could.',
+    name: 'Isabelle Dupont',
+    role: 'Real Estate Investor',
+    initials: 'ID',
+    color: '#2D4077',
+  },
+  {
+    text: 'Within 48 hours of sharing the renders on Instagram, we had 300+ inquiries. Shortcut Preview completely transformed our pre-launch strategy.',
+    name: 'Marc-Antoine Vidal',
+    role: 'Founder, MV Properties · Bordeaux',
+    initials: 'MV',
+    color: '#03A63C',
+  },
+  {
+    text: 'The day/night renders and interior customization made our open-house event unforgettable. Clients spent hours exploring their future home.',
+    name: 'Claire Fontaine',
+    role: 'Project Manager, Groupe Fontaine',
+    initials: 'CF',
+    color: '#2D4077',
+  },
+  {
+    text: 'Best investment we made for our new development. The 3D walkthrough replaced 10 physical site visits and saved our sales team weeks of work.',
+    name: 'Romain Leclerc',
+    role: 'COO, Leclerc Real Estate Group',
+    initials: 'RL',
+    color: '#03A63C',
+  },
+  {
+    text: 'Our architect partners now insist on including Shortcut Preview renders in every pitch. It has become our competitive edge in tender submissions.',
+    name: 'Nathalie Bernard',
+    role: 'Development Director, BNR Group',
+    initials: 'NB',
+    color: '#2D4077',
+  },
+  {
+    text: 'The cinematic video felt like a Hollywood production for our project. Buyers emotionally connected with the space before a single wall was built.',
+    name: 'Pierre-Louis Martel',
+    role: 'CEO, Martel Prestige Homes',
+    initials: 'PM',
+    color: '#03A63C',
+  },
+]
+
+const PREVIEW_HOW_STEPS = [
+  {
+    n: '01',
+    title: 'Share your plans & references',
+    short: 'Send us your architectural plans, mood boards, and any style references.',
+    paras: [
+      'Our brief captures everything we need: floor plans, material choices, lighting preferences, and the atmosphere you want to convey.',
+      'The more detail you share, the closer the final render will be to your vision — from the very first delivery.',
+    ],
+    fileLogos: true,
+    Visual: null,
+    flip: false,
+  },
+  {
+    n: '02',
+    title: 'We create your 3D visuals & videos',
+    short: 'Our team of 3D artists and cinematic directors gets to work immediately.',
+    paras: [
+      'We model, texture, light, and render your property with photorealistic precision — day and night versions, interior and exterior, with your chosen furniture and finishes.',
+      'For walkthroughs and cinematic previews, we add storytelling, camera motion, and ambiance to make buyers feel like they are already there.',
+    ],
+    Visual: null,
+    flip: true,
+  },
+  {
+    n: '03',
+    title: 'Receive your preview in 72 hours',
+    short: 'Your full 3D package is delivered, ready for marketing and pre-sales.',
+    paras: [
+      'We refine based on your feedback until every detail is perfect.',
+      'Final files delivered in all formats: high-res images, video files, and interactive links — ready for your website, social media, and sales materials.',
+    ],
+    Visual: null,
+    flip: false,
+  },
+]
+
+const PREVIEW_PLANS = [
+  {
+    name: 'Render',
+    price: 'From $490',
+    priceSub: '5 ultra-realistic still renders',
+    priceAlt: null,
+    priceAltSub: null,
+    desc: 'Photorealistic still renders to launch your marketing and attract early buyers.',
+    features: [
+      '5 ultra-realistic still renders',
+      'Exterior or interior views',
+      'Day version included',
+      'Custom materials & finishes',
+      'Furniture from your specifications',
+      'High-res delivery (300 dpi)',
+      '1 revision round',
+    ],
+    options: [
+      { name: 'Night version', desc: 'Same renders with dramatic evening lighting and lit interiors.', price: '$120' },
+      { name: 'Extra views (+3)', desc: 'Additional camera angles, 3 more renders.', price: '$180' },
+    ],
+    cta: 'Get started',
+    highlight: false,
+  },
+  {
+    name: 'Walkthrough',
+    price: 'From $890',
+    priceSub: { duration: '45 sec', footage: 'key rooms' },
+    priceAlt: '$1,490',
+    priceAltSub: { duration: '90 sec', footage: 'full tour' },
+    desc: 'Cinematic 3D walkthrough video that lets buyers explore every room before it exists.',
+    features: [
+      'Cinematic walkthrough video',
+      'Interior & exterior sequence',
+      'Premium lighting & shadows',
+      'Custom furniture & finishes',
+      'Background music & sound design',
+      'Day / night version',
+      'Social media cut included',
+      'Optimized for web & presentations',
+      '2 revision rounds',
+    ],
+    options: [
+      { name: 'Interactive web tour', desc: 'Clickable day/night toggle and furniture swap — delivered as a hosted web link.', price: '$280' },
+      { name: 'Aerial drone simulation', desc: 'CGI drone shot approaching the building for a cinematic opening.', price: '$150' },
+    ],
+    cta: 'Get started',
+    highlight: true,
+  },
+  {
+    name: 'Full Preview',
+    price: 'From $2,200',
+    priceSub: 'Complete off-plan marketing package',
+    priceAlt: null,
+    priceAltSub: null,
+    desc: 'The complete 3D experience: renders, walkthrough, interactive tour, and cinematic film. No compromises.',
+    features: [
+      'Unlimited still renders',
+      'Full cinematic walkthrough video',
+      'Interactive 3D web tour (hosted)',
+      'Interior customization tool',
+      'Day / night & season variations',
+      'Aerial CGI drone sequence',
+      'Dedicated artistic direction',
+      'Furniture & material library access',
+      'Branded presentation deck',
+      'All source files delivered',
+    ],
+    options: [],
+    cta: 'Get started',
+    highlight: false,
+  },
+]
+
+/* ─────────────────────────────────────────
    HERO  (dark + scroll animation)
 ───────────────────────────────────────── */
-function Hero({ user, onOpenAuth, onOpenBooking }) {
+function Hero({ user, onOpenAuth, onOpenBooking, mode, accent, onSwitchMode }) {
   const navLinks = [
     { label: 'SERVICES', href: '#services' },
     { label: 'WORK', href: '#portfolio' },
@@ -158,7 +433,7 @@ function Hero({ user, onOpenAuth, onOpenBooking }) {
     >
       {/* ── Blobs de couleur ── */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div style={{ position: 'absolute', top: '-10%', left: '15%', width: '500px', height: '400px', background: 'radial-gradient(ellipse, rgba(104,69,236,0.18) 0%, transparent 70%)', filter: 'blur(70px)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', top: '-10%', left: '15%', width: '500px', height: '400px', background: mode === 'preview' ? 'radial-gradient(ellipse, rgba(3,166,60,0.18) 0%, transparent 70%)' : 'radial-gradient(ellipse, rgba(104,69,236,0.18) 0%, transparent 70%)', filter: 'blur(70px)', borderRadius: '50%', transition: 'background 0.5s ease' }} />
         <div style={{ position: 'absolute', top: '2%', right: '10%', width: '400px', height: '320px', background: 'radial-gradient(ellipse, rgba(99,179,237,0.14) 0%, transparent 70%)', filter: 'blur(80px)', borderRadius: '50%' }} />
       </div>
 
@@ -172,8 +447,17 @@ function Hero({ user, onOpenAuth, onOpenBooking }) {
           className="text-xl font-bold tracking-wider text-white"
           style={{ textDecoration: 'none', fontFamily: 'DM Sans, sans-serif' }}
         >
-          shortcut<span style={{ color: '#6845EC' }}>.</span>
+          shortcut<span style={{ color: accent }}>.</span>
         </motion.a>
+
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.08 }}
+          className="hidden md:block"
+        >
+          <ModeToggle mode={mode} onSwitch={onSwitchMode} />
+        </motion.div>
 
         <motion.nav
           initial={{ opacity: 0, y: -10 }}
@@ -205,7 +489,7 @@ function Hero({ user, onOpenAuth, onOpenBooking }) {
               style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
               <div style={{
-                width: '32px', height: '32px', borderRadius: '50%', background: '#7C3AED',
+                width: '32px', height: '32px', borderRadius: '50%', background: accent,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#fff', fontFamily: 'DM Sans', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '-0.02em',
               }}>
@@ -227,9 +511,9 @@ function Hero({ user, onOpenAuth, onOpenBooking }) {
           <button
             onClick={onOpenBooking}
             className="rounded-full px-5 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
-            style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC40', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em' }}
+            style={{ background: accent, boxShadow: `0 4px 20px ${accent}40`, border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', letterSpacing: '-0.03em', transition: 'background 0.3s ease, box-shadow 0.3s ease' }}
           >
-            Book a call →
+            {mode === 'preview' ? 'Request a preview →' : 'Book a call →'}
           </button>
         </motion.div>
       </header>
@@ -237,74 +521,138 @@ function Hero({ user, onOpenAuth, onOpenBooking }) {
       {/* ── Texte hero — directement sous la nav ── */}
       <div className="max-w-6xl mx-auto px-6 pt-20 pb-0">
         <motion.div
+          key={mode}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.5 }}
         >
-          <h1
-            className="font-black leading-[1.02] tracking-tight mb-5"
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 800,
-              fontSize: 'clamp(2.8rem, 5.5vw, 5rem)',
-              color: '#FFFFFF',
-              letterSpacing: '-0.05em',
-            }}
-          >
-            We turn your property into an<br /> <span style={{ color: '#6845EC' }}>irresistible</span> place.
-          </h1>
+          {mode === 'preview' ? (
+            <>
+              <h1
+                className="font-black leading-[1.02] tracking-tight mb-5"
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 800,
+                  fontSize: 'clamp(2.8rem, 5.5vw, 5rem)',
+                  color: '#FFFFFF',
+                  letterSpacing: '-0.05em',
+                }}
+              >
+                See your property<br /> <span style={{ color: '#03A63C' }}>before it exists.</span>
+              </h1>
 
-          <p
-            className="text-lg md:text-xl leading-relaxed mb-7"
-            style={{ color: 'rgba(255,255,255,0.55)', maxWidth: '680px', letterSpacing: '-0.03em' }}
-          >
-            Professional, human-made video editing{' '}
-            <strong style={{ color: '#fff', fontWeight: 600 }}>delivered in 48 hours.</strong>
-            <br />
-            <span style={{ whiteSpace: 'nowrap' }}>No freelancers, no AI, no hassle&hellip;just high-impact videos that attract attention and drive demand.</span>
-          </p>
+              <p
+                className="text-lg md:text-xl leading-relaxed mb-7"
+                style={{ color: 'rgba(255,255,255,0.55)', maxWidth: '680px', letterSpacing: '-0.03em' }}
+              >
+                Ultra-realistic 3D renders, cinematic preview videos, and interactive walkthroughs.{' '}
+                <strong style={{ color: '#fff', fontWeight: 600 }}>Delivered in 72 hours.</strong>
+                <br />
+                <span>Sell off-plan, impress investors, and help buyers visualize their future home — before a single wall is built.</span>
+              </p>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* View pricing — rectangle arrondi violet */}
-            <button
-              onClick={() => navigateTo('pricing')}
-              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold text-white transition-all hover:opacity-90"
-              style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC50', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
-            >
-              View pricing <ArrowRight className="h-4 w-4" />
-            </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => navigateTo('pricing')}
+                  className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold text-white transition-all hover:opacity-90"
+                  style={{ background: '#03A63C', boxShadow: '0 4px 20px #03A63C50', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
+                >
+                  View packages <ArrowRight className="h-4 w-4" />
+                </button>
 
-            {/* Book a call — rectangle arrondi blanc */}
-            <button
-              onClick={onOpenBooking}
-              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold transition-all hover:opacity-90"
-              style={{ background: '#ffffff', color: '#0D0D0D', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
-            >
-              Book a call
-            </button>
+                <button
+                  onClick={onOpenBooking}
+                  className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold transition-all hover:opacity-90"
+                  style={{ background: '#ffffff', color: '#0D0D0D', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
+                >
+                  Request a preview
+                </button>
 
-            <span className="hidden md:block h-5 w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
+                <span className="hidden md:block h-5 w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
 
-            <div className="flex items-center gap-1.5 text-base" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '-0.03em' }}>
-              <Users className="h-5 w-5" style={{ color: '#6845EC' }} />
-              <span><strong style={{ color: '#fff' }}>1,000+</strong> customers</span>
-            </div>
+                <div className="flex items-center gap-1.5 text-base" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '-0.03em' }}>
+                  <Building2 className="h-5 w-5" style={{ color: '#03A63C' }} />
+                  <span><strong style={{ color: '#fff' }}>500+</strong> projects visualized</span>
+                </div>
 
-            <span className="hidden md:block h-5 w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
+                <span className="hidden md:block h-5 w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
 
-            {/* Drapeau français SVG avec coins arrondis */}
-            <div className="flex items-center gap-2 text-base" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              <svg width="22" height="16" viewBox="0 0 22 16" style={{ borderRadius: '3px', flexShrink: 0 }}>
-                <rect width="22" height="16" rx="3" fill="#fff" />
-                <rect width="7.33" height="16" rx="0" fill="#002395" />
-                <rect x="7.33" width="7.34" height="16" fill="#fff" />
-                <rect x="14.67" width="7.33" height="16" rx="0" fill="#ED2939" />
-                {/* coins arrondis via clip */}
-                <rect width="22" height="16" rx="3" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
-              </svg>
-              <span>Registered in France</span>
-            </div>
-          </div>
+                <div className="flex items-center gap-2 text-base" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <svg width="22" height="16" viewBox="0 0 22 16" style={{ borderRadius: '3px', flexShrink: 0 }}>
+                    <rect width="22" height="16" rx="3" fill="#fff" />
+                    <rect width="7.33" height="16" rx="0" fill="#002395" />
+                    <rect x="7.33" width="7.34" height="16" fill="#fff" />
+                    <rect x="14.67" width="7.33" height="16" rx="0" fill="#ED2939" />
+                    <rect width="22" height="16" rx="3" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
+                  </svg>
+                  <span>Registered in France</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1
+                className="font-black leading-[1.02] tracking-tight mb-5"
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 800,
+                  fontSize: 'clamp(2.8rem, 5.5vw, 5rem)',
+                  color: '#FFFFFF',
+                  letterSpacing: '-0.05em',
+                }}
+              >
+                We turn your property into an<br /> <span style={{ color: '#6845EC' }}>irresistible</span> place.
+              </h1>
+
+              <p
+                className="text-lg md:text-xl leading-relaxed mb-7"
+                style={{ color: 'rgba(255,255,255,0.55)', maxWidth: '680px', letterSpacing: '-0.03em' }}
+              >
+                Professional, human-made video editing{' '}
+                <strong style={{ color: '#fff', fontWeight: 600 }}>delivered in 48 hours.</strong>
+                <br />
+                <span style={{ whiteSpace: 'nowrap' }}>No freelancers, no AI, no hassle&hellip;just high-impact videos that attract attention and drive demand.</span>
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => navigateTo('pricing')}
+                  className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold text-white transition-all hover:opacity-90"
+                  style={{ background: '#6845EC', boxShadow: '0 4px 20px #6845EC50', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
+                >
+                  View pricing <ArrowRight className="h-4 w-4" />
+                </button>
+
+                <button
+                  onClick={onOpenBooking}
+                  className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-semibold transition-all hover:opacity-90"
+                  style={{ background: '#ffffff', color: '#0D0D0D', border: 'none', cursor: 'pointer', letterSpacing: '-0.03em' }}
+                >
+                  Book a call
+                </button>
+
+                <span className="hidden md:block h-5 w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
+
+                <div className="flex items-center gap-1.5 text-base" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '-0.03em' }}>
+                  <Users className="h-5 w-5" style={{ color: '#6845EC' }} />
+                  <span><strong style={{ color: '#fff' }}>1,000+</strong> customers</span>
+                </div>
+
+                <span className="hidden md:block h-5 w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
+
+                <div className="flex items-center gap-2 text-base" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <svg width="22" height="16" viewBox="0 0 22 16" style={{ borderRadius: '3px', flexShrink: 0 }}>
+                    <rect width="22" height="16" rx="3" fill="#fff" />
+                    <rect width="7.33" height="16" rx="0" fill="#002395" />
+                    <rect x="7.33" width="7.34" height="16" fill="#fff" />
+                    <rect x="14.67" width="7.33" height="16" rx="0" fill="#ED2939" />
+                    <rect width="22" height="16" rx="3" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
+                  </svg>
+                  <span>Registered in France</span>
+                </div>
+              </div>
+            </>
+          )}
         </motion.div>
       </div>
 
@@ -334,7 +682,9 @@ const BELIEF_BULLETS = [
   { left: 'No shortcuts, just premium editing', right: 'Top 1% editors in the world', rightAccent: true },
 ]
 
-function Targets() {
+function Targets({ mode, accent }) {
+  const bullets = mode === 'preview' ? PREVIEW_BELIEF_BULLETS : BELIEF_BULLETS
+  const isPreview = mode === 'preview'
   return (
     <section id="services" className="pt-28 pb-0 relative overflow-hidden" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
@@ -346,16 +696,26 @@ function Targets() {
               className="font-sans font-bold mb-8"
               style={{ fontSize: 'clamp(1.75rem, 3vw, 2.2rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: '1.35' }}
             >
-              We believe great properties{' '}
-              <span style={{ color: '#6845EC' }}>shouldn't be overlooked.</span>{' '}
-              So we turn yours into a high-demand listing,{' '}
-              <span style={{ color: '#6845EC' }}>in 48 hours.</span>
+              {isPreview ? (
+                <>
+                  We bring your project to life{' '}
+                  <span style={{ color: accent }}>before the first brick is laid.</span>{' '}
+                  So buyers can fall in love,{' '}
+                  <span style={{ color: accent }}>in 72 hours.</span>
+                </>
+              ) : (
+                <>
+                  We believe great properties{' '}
+                  <span style={{ color: accent }}>shouldn't be overlooked.</span>{' '}
+                  So we turn yours into a high-demand listing,{' '}
+                  <span style={{ color: accent }}>in 48 hours.</span>
+                </>
+              )}
             </p>
 
-            {/* 2-col bullet grid — chaque cellule a sa propre underline */}
+            {/* 2-col bullet grid */}
             <div className="grid grid-cols-2 gap-x-10">
-              {BELIEF_BULLETS.flatMap((row, i) => [
-                /* Left cell */
+              {bullets.flatMap((row, i) => [
                 <div
                   key={`l${i}`}
                   className="py-1.5"
@@ -365,8 +725,6 @@ function Targets() {
                     {row.left}
                   </span>
                 </div>,
-
-                /* Right cell */
                 <div
                   key={`r${i}`}
                   className="py-2.5"
@@ -375,7 +733,7 @@ function Targets() {
                   {row.rightAccent ? (
                     <span
                       className="font-sans text-xl font-semibold px-4 py-0.5 rounded-full inline-block w-fit"
-                      style={{ background: '#6845EC', color: '#fff', letterSpacing: '-0.05em' }}
+                      style={{ background: accent, color: '#fff', letterSpacing: '-0.05em' }}
                     >
                       {row.right}
                     </span>
@@ -389,45 +747,66 @@ function Targets() {
             </div>
           </FadeIn>
 
-          {/* ── Right: Before / After video slots ── */}
+          {/* ── Right: Before/After (Shortcut) or 3D render preview (Preview) ── */}
           <FadeIn delay={120} className="flex-shrink-0 flex items-end gap-7">
-            {/* Before */}
-            <div className="flex flex-col items-center gap-4">
-              <span
-                className="font-sans text-sm font-semibold uppercase tracking-widest"
-                style={{ color: 'rgba(17,24,39,0.4)' }}
-              >
-                Before
-              </span>
-              <video
-                src={encodeURI('/video avant apres/Avant.mp4')}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="rounded-2xl object-cover"
-                style={{ width: '280px', height: '500px' }}
-              />
-            </div>
-
-            {/* After */}
-            <div className="flex flex-col items-center gap-4">
-              <span
-                className="font-sans text-sm font-semibold uppercase tracking-widest"
-                style={{ color: '#6845EC' }}
-              >
-                After
-              </span>
-              <video
-                src={encodeURI('/video avant apres/Après.mp4'.normalize('NFD'))}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="rounded-2xl object-cover"
-                style={{ width: '280px', height: '500px', border: '2px solid #6845EC', boxShadow: '0 0 60px rgba(104,69,236,0.25)' }}
-              />
-            </div>
+            {isPreview ? (
+              /* Preview mode: show target audience pills */
+              <div className="flex flex-col gap-5 py-4">
+                {[
+                  { icon: '🏗️', label: 'Real estate developers' },
+                  { icon: '📐', label: 'Architects & builders' },
+                  { icon: '💼', label: 'Property investors' },
+                ].map(({ icon, label }) => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-4 px-6 py-4 rounded-2xl"
+                    style={{ background: 'rgba(3,166,60,0.06)', border: '1px solid rgba(3,166,60,0.18)' }}
+                  >
+                    <span style={{ fontSize: '1.6rem' }}>{icon}</span>
+                    <span className="font-sans font-semibold text-lg" style={{ color: '#111827', letterSpacing: '-0.03em' }}>
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col items-center gap-4">
+                  <span
+                    className="font-sans text-sm font-semibold uppercase tracking-widest"
+                    style={{ color: 'rgba(17,24,39,0.4)' }}
+                  >
+                    Before
+                  </span>
+                  <video
+                    src={encodeURI('/video avant apres/Avant.mp4')}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="rounded-2xl object-cover"
+                    style={{ width: '280px', height: '500px' }}
+                  />
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                  <span
+                    className="font-sans text-sm font-semibold uppercase tracking-widest"
+                    style={{ color: accent }}
+                  >
+                    After
+                  </span>
+                  <video
+                    src={encodeURI('/video avant apres/Après.mp4'.normalize('NFD'))}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="rounded-2xl object-cover"
+                    style={{ width: '280px', height: '500px', border: `2px solid ${accent}`, boxShadow: '0 0 60px rgba(104,69,236,0.25)' }}
+                  />
+                </div>
+              </>
+            )}
           </FadeIn>
 
         </div>
@@ -453,17 +832,19 @@ const COMPARISON_RIGHT = [
   'Built to attract & convert',
 ]
 
-function Services() {
+function Services({ mode, accent }) {
+  const isPreview = mode === 'preview'
+  const leftItems = isPreview ? PREVIEW_COMPARISON_LEFT : COMPARISON_LEFT
+  const rightItems = isPreview ? PREVIEW_COMPARISON_RIGHT : COMPARISON_RIGHT
   return (
     <section className="pt-24 pb-24 relative" style={{ background: '#FFFFFF' }}>
       <div className="max-w-5xl mx-auto px-6">
 
         {/* ── Header centré ── */}
         <FadeIn className="text-center mb-14">
-          {/* Étoiles */}
           <div className="flex items-center justify-center gap-1.5 mb-5">
             {[...Array(5)].map((_, i) => (
-              <svg key={i} width="18" height="18" viewBox="0 0 24 24" fill="#6845EC">
+              <svg key={i} width="18" height="18" viewBox="0 0 24 24" fill={accent}>
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             ))}
@@ -472,7 +853,6 @@ function Services() {
             </span>
           </div>
 
-          {/* Titre */}
           <h2
             className="font-sans font-bold mb-4"
             style={{
@@ -482,15 +862,18 @@ function Services() {
               lineHeight: '1.2',
             }}
           >
-            From invisible to high-demand, in 48 hours.
+            {isPreview
+              ? 'From floor plans to photorealistic reality, in 72 hours.'
+              : 'From invisible to high-demand, in 48 hours.'}
           </h2>
 
-          {/* Sous-titre */}
           <p
             className="font-sans font-medium"
             style={{ fontSize: '1.5rem', color: 'rgba(17,24,39,0.65)', letterSpacing: '-0.03em', lineHeight: '1.5', marginTop: '1rem' }}
           >
-            Your property deserves attention. We make sure it gets it.
+            {isPreview
+              ? 'Your project deserves to be seen. We make it impossible to ignore.'
+              : 'Your property deserves attention. We make sure it gets it.'}
           </p>
         </FadeIn>
 
@@ -498,7 +881,6 @@ function Services() {
         <FadeIn delay={80}>
           <div className="grid grid-cols-2">
 
-            {/* Colonne Gauche */}
             <div className="pr-6 md:pr-10">
               <h3
                 className="font-sans font-bold mb-3"
@@ -506,11 +888,11 @@ function Services() {
               >
                 Traditional approach
               </h3>
-              {COMPARISON_LEFT.map((item, i) => (
+              {leftItems.map((item, i) => (
                 <div
                   key={i}
                   className="flex items-center gap-2.5 py-2.5"
-                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: i === COMPARISON_LEFT.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none' }}
+                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: i === leftItems.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none' }}
                 >
                   <div
                     className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
@@ -530,23 +912,22 @@ function Services() {
               ))}
             </div>
 
-            {/* Colonne Droite */}
             <div className="pl-6 md:pl-10" style={{ borderLeft: '1px solid rgba(0,0,0,0.08)' }}>
               <h3
                 className="font-sans font-bold mb-3"
                 style={{ fontSize: '1.75rem', color: '#111827', letterSpacing: '-0.04em' }}
               >
-                Shortcut
+                {isPreview ? 'Shortcut Preview' : 'Shortcut'}
               </h3>
-              {COMPARISON_RIGHT.map((item, i) => (
+              {rightItems.map((item, i) => (
                 <div
                   key={i}
                   className="flex items-center gap-2.5 py-2.5"
-                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: i === COMPARISON_RIGHT.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none' }}
+                  style={{ borderTop: '1px solid rgba(0,0,0,0.08)', borderBottom: i === rightItems.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none' }}
                 >
                   <div
                     className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ background: '#6845EC' }}
+                    style={{ background: accent }}
                   >
                     <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                       <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -571,67 +952,129 @@ function Services() {
 }
 
 /* ─────────────────────────────────────────
+   VIEWER 3D SECTION
+───────────────────────────────────────── */
+function Viewer3DSection({ accent }) {
+  const [demoModel, setDemoModel] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase
+      .from('models')
+      .select('glb_url, rooms, name')
+      .eq('is_demo', true)
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        setDemoModel(data ?? null)
+        setLoading(false)
+      })
+  }, [])
+
+  if (!loading && !demoModel) return null
+
+  return (
+    <section style={{ background: '#07070F', padding: '80px 24px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <FadeIn className="text-center mb-10">
+          <p className="section-label" style={{ color: accent, marginBottom: '1rem' }}>Interactive tour</p>
+          <h2
+            className="font-display"
+            style={{
+              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+              color: '#FFFFFF',
+              letterSpacing: '-0.04em',
+              lineHeight: 1.1,
+              marginBottom: '1rem',
+            }}
+          >
+            Explore the space
+          </h2>
+          <p
+            className="font-sans"
+            style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '-0.03em', maxWidth: 480, margin: '0 auto' }}
+          >
+            Navigate room by room. Every angle, every detail — delivered in 72 hours.
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={80}>
+          {loading ? (
+            <div style={{
+              width: '100%', height: 500, borderRadius: 16,
+              background: 'linear-gradient(135deg, #0d0d1a, #111827)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <div style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.08)', borderTop: '3px solid rgba(255,255,255,0.5)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : (
+            <Viewer3D
+              glbUrl={demoModel.glb_url}
+              rooms={demoModel.rooms ?? []}
+              height={560}
+              accentColor={accent}
+              showHotspots
+            />
+          )}
+        </FadeIn>
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────
    TESTIMONIAL BANNER
 ───────────────────────────────────────── */
-function TestimonialBanner() {
+function TestimonialBanner({ mode, accent }) {
+  const isPreview = mode === 'preview'
   return (
     <section style={{ background: '#07070F' }} className="py-16 px-6">
-      <div
-        className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-14"
-      >
-        {/* Photo + identité */}
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-14">
         <div className="flex-shrink-0 flex flex-col items-center gap-3 text-center">
           <div
             className="overflow-hidden rounded-2xl"
-            style={{ width: 140, height: 160, border: '2px solid rgba(104,69,236,0.5)', flexShrink: 0 }}
+            style={{ width: 140, height: 160, border: `2px solid ${accent}80`, flexShrink: 0 }}
           >
-            <img
-              src="/marc-delcourt.jpg"
-              alt="Marc Delcourt"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }}
-            />
+            {isPreview ? (
+              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #0a2a14, #1a4a25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '3rem' }}>🏗️</span>
+              </div>
+            ) : (
+              <img
+                src="/marc-delcourt.jpg"
+                alt="Marc Delcourt"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }}
+              />
+            )}
           </div>
           <div>
-            <p
-              className="font-sans font-bold"
-              style={{ color: '#fff', fontSize: '1.15rem', letterSpacing: '-0.03em', lineHeight: 1.3 }}
-            >
-              Marc Delcourt
+            <p className="font-sans font-bold" style={{ color: '#fff', fontSize: '1.15rem', letterSpacing: '-0.03em', lineHeight: 1.3 }}>
+              {isPreview ? 'Alexandre Moreau' : 'Marc Delcourt'}
             </p>
-            <p
-              className="font-sans"
-              style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', letterSpacing: '-0.02em' }}
-            >
-              Homeowner
+            <p className="font-sans" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', letterSpacing: '-0.02em' }}>
+              {isPreview ? 'CEO, Moreau Développement' : 'Homeowner'}
             </p>
           </div>
         </div>
 
-        {/* Séparateur vertical */}
-        <div
-          className="hidden md:block flex-shrink-0"
-          style={{ width: 1, height: 120, background: 'rgba(255,255,255,0.12)' }}
-        />
+        <div className="hidden md:block flex-shrink-0" style={{ width: 1, height: 120, background: 'rgba(255,255,255,0.12)' }} />
 
-        {/* Citation */}
         <blockquote className="relative">
           <span
             aria-hidden="true"
             className="font-display absolute"
-            style={{ top: '-0.5rem', left: '-0.2rem', fontSize: '4rem', color: '#6845EC', lineHeight: 1, opacity: 0.6 }}
+            style={{ top: '-0.5rem', left: '-0.2rem', fontSize: '4rem', color: accent, lineHeight: 1, opacity: 0.6 }}
           >
             "
           </span>
           <p
             className="font-sans pl-8"
-            style={{
-              fontSize: 'clamp(1.2rem, 1.8vw, 1.5rem)',
-              color: '#ffffff',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.65,
-            }}
+            style={{ fontSize: 'clamp(1.2rem, 1.8vw, 1.5rem)', color: '#ffffff', letterSpacing: '-0.03em', lineHeight: 1.65 }}
           >
-            Shortcut transformed my property listing completely. It was barely getting noticed at first, after their video, it sold in just a few weeks. No complicated process, just sharp, high-impact editing that actually delivers results.
+            {isPreview
+              ? 'The 3D renders Shortcut Preview created for our off-plan project were indistinguishable from real photos. We sold 70% of units before breaking ground — buyers could truly see themselves living there.'
+              : 'Shortcut transformed my property listing completely. It was barely getting noticed at first, after their video, it sold in just a few weeks. No complicated process, just sharp, high-impact editing that actually delivers results.'}
           </p>
         </blockquote>
       </div>
@@ -693,101 +1136,121 @@ const gradientText = {
   backgroundClip: 'text',
 }
 
-function ValueProps() {
+function ValueProps({ mode, accent }) {
+  const isPreview = mode === 'preview'
+  const gradientText = {
+    backgroundImage: isPreview
+      ? 'linear-gradient(135deg, #03A63C 0%, #06D44F 100%)'
+      : 'linear-gradient(135deg, #6845EC 0%, #9B6FFF 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+  }
+
   return (
     <section className="py-28" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6 flex flex-col gap-36">
 
-        {/* ── Row 1 — Texte depuis gauche, vidéo depuis droite ── */}
+        {/* ── Row 1 ── */}
         <div className="grid grid-cols-12 gap-16 items-center">
           <motion.div className="col-span-12 md:col-span-5 flex flex-col gap-6" {...slideIn('left')}>
             <h3
               className="font-sans font-bold"
               style={{ fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}
             >
-              Increase the perceived{' '}
-              <span style={gradientText}>value</span>{' '}
-              of your property
+              {isPreview ? (
+                <>Sell before construction <span style={gradientText}>starts</span></>
+              ) : (
+                <>Increase the perceived <span style={gradientText}>value</span> of your property</>
+              )}
             </h3>
-            <p
-              className="font-sans"
-              style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}
-            >
-              The way your property is presented directly impacts how much it's worth in the eyes of clients.
+            <p className="font-sans" style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}>
+              {isPreview
+                ? 'Ultra-realistic 3D renders let buyers fall in love with your project before the first wall is built — turning plans into pre-sales.'
+                : "The way your property is presented directly impacts how much it's worth in the eyes of clients."}
             </p>
           </motion.div>
           <motion.div className="col-span-12 md:col-span-7" {...slideIn('right', 120)}>
-            <VideoPlaceholder aspect="16/9" />
+            <VideoPlaceholder aspect="16/9" label={isPreview ? '3D render preview' : 'Vidéo à venir'} />
           </motion.div>
         </div>
 
-        {/* ── Row 2 — Vidéo depuis gauche, texte depuis droite ── */}
+        {/* ── Row 2 ── */}
         <div className="grid grid-cols-12 gap-16 items-center">
           <motion.div className="col-span-12 md:col-span-3 flex justify-center md:justify-start" {...slideIn('left')}>
-            <VideoPlaceholder aspect="9/16" label="Vidéo réseaux sociaux" />
+            <VideoPlaceholder aspect="9/16" label={isPreview ? 'Interior walkthrough' : 'Vidéo réseaux sociaux'} />
           </motion.div>
           <motion.div className="col-span-12 md:col-span-9 flex flex-col gap-6" {...slideIn('right', 120)}>
             <h3
               className="font-sans font-bold"
               style={{ fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}
             >
-              Turn{' '}
-              <span style={gradientText}>attention</span>{' '}
-              into real bookings
+              {isPreview ? (
+                <>Turn plans into <span style={gradientText}>emotion</span></>
+              ) : (
+                <>Turn <span style={gradientText}>attention</span> into real bookings</>
+              )}
             </h3>
-            <p
-              className="font-sans"
-              style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}
-            >
-              Views don't matter if they don't convert.{' '}
-              We create videos designed to make people{' '}
-              <span className="font-semibold" style={{ color: '#111827' }}>click, book, and act.</span>
+            <p className="font-sans" style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}>
+              {isPreview
+                ? 'Buyers don\'t buy blueprints — they buy feelings. Our immersive walkthroughs let them experience every room, material, and lighting mood before it exists.'
+                : <>Views don't matter if they don't convert. We create videos designed to make people <span className="font-semibold" style={{ color: '#111827' }}>click, book, and act.</span></>}
             </p>
           </motion.div>
         </div>
 
-        {/* ── Row 3 — Texte depuis gauche, vidéo depuis droite ── */}
+        {/* ── Row 3 ── */}
         <div className="grid grid-cols-12 gap-16 items-center">
           <motion.div className="col-span-12 md:col-span-5 flex flex-col gap-6" {...slideIn('left')}>
             <h3
               className="font-sans font-bold"
               style={{ fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}
             >
-              Sell and rent{' '}
-              <span style={gradientText}>faster</span>
+              {isPreview ? (
+                <>Close <span style={gradientText}>faster</span> with immersive previews</>
+              ) : (
+                <>Sell and rent <span style={gradientText}>faster</span></>
+              )}
             </h3>
-            <p
-              className="font-sans"
-              style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}
-            >
-              The more attractive your property is, the faster it gets attention and results.
+            <p className="font-sans" style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}>
+              {isPreview
+                ? 'The more real your project feels, the faster buyers commit.'
+                : 'The more attractive your property is, the faster it gets attention and results.'}
             </p>
             <p className="font-sans" style={{ fontSize: '1.45rem', color: 'rgba(17,24,39,0.55)', letterSpacing: '-0.03em', lineHeight: 1.65 }}>
-              With our videos, sell your property around{' '}
-              <motion.span
-                className="font-black"
-                style={{ color: '#6845EC', fontSize: '1.55rem', letterSpacing: '-0.05em' }}
-                {...popIn(200)}
-              >
-                30%
-              </motion.span>{' '}
-              faster and attract{' '}
-              <motion.span
-                className="font-black"
-                style={{ color: '#6845EC', fontSize: '1.55rem', letterSpacing: '-0.05em' }}
-                {...popIn(380)}
-              >
-                40–50%
-              </motion.span>{' '}
-              more potential renters.
+              {isPreview ? (
+                <>
+                  Projects using 3D previews pre-sell{' '}
+                  <motion.span className="font-black" style={{ color: accent, fontSize: '1.55rem', letterSpacing: '-0.05em' }} {...popIn(200)}>
+                    3× faster
+                  </motion.span>{' '}
+                  and see{' '}
+                  <motion.span className="font-black" style={{ color: accent, fontSize: '1.55rem', letterSpacing: '-0.05em' }} {...popIn(380)}>
+                    60%
+                  </motion.span>{' '}
+                  higher perceived value from buyers.
+                </>
+              ) : (
+                <>
+                  With our videos, sell your property around{' '}
+                  <motion.span className="font-black" style={{ color: accent, fontSize: '1.55rem', letterSpacing: '-0.05em' }} {...popIn(200)}>
+                    30%
+                  </motion.span>{' '}
+                  faster and attract{' '}
+                  <motion.span className="font-black" style={{ color: accent, fontSize: '1.55rem', letterSpacing: '-0.05em' }} {...popIn(380)}>
+                    40–50%
+                  </motion.span>{' '}
+                  more potential renters.
+                </>
+              )}
             </p>
           </motion.div>
           <motion.div className="col-span-12 md:col-span-7" {...slideIn('right', 120)}>
-            <VideoPlaceholder aspect="16/9" />
+            <VideoPlaceholder aspect="16/9" label={isPreview ? 'Cinematic preview video' : 'Vidéo à venir'} />
           </motion.div>
         </div>
 
-        {/* ── Enter a new way... ── */}
+        {/* ── Big display text ── */}
         <div className="text-center pt-8 flex flex-col items-center gap-3" style={{ marginBottom: '-4rem' }}>
           <motion.p
             className="font-display"
@@ -797,7 +1260,7 @@ function ValueProps() {
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           >
-            ENT<span style={gradientText}>ER</span>
+            {isPreview ? <>VI<span style={gradientText}>EW</span></> : <>ENT<span style={gradientText}>ER</span></>}
           </motion.p>
           <motion.p
             className="font-display"
@@ -807,7 +1270,7 @@ function ValueProps() {
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
           >
-            A NEW WAY OF SELLING YOUR PROPERTY
+            {isPreview ? 'YOUR PROJECT BEFORE IT EXISTS' : 'A NEW WAY OF SELLING YOUR PROPERTY'}
           </motion.p>
         </div>
 
@@ -1007,7 +1470,7 @@ function PortfolioCard({ item }) {
   )
 }
 
-function Portfolio() {
+function Portfolio({ mode, accent }) {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { align: 'start', dragFree: true },
     [WheelGesturesPlugin()]
@@ -1044,8 +1507,8 @@ function Portfolio() {
               disabled={!canPrev}
               className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
               style={{
-                border: `1.5px solid ${canPrev ? '#6845EC' : 'rgba(0,0,0,0.15)'}`,
-                color: canPrev ? '#6845EC' : 'rgba(0,0,0,0.25)',
+                border: `1.5px solid ${canPrev ? accent : 'rgba(0,0,0,0.15)'}`,
+                color: canPrev ? accent : 'rgba(0,0,0,0.25)',
                 background: 'transparent',
                 cursor: canPrev ? 'pointer' : 'default',
               }}
@@ -1057,8 +1520,8 @@ function Portfolio() {
               disabled={!canNext}
               className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
               style={{
-                border: `1.5px solid ${canNext ? '#6845EC' : 'rgba(0,0,0,0.15)'}`,
-                color: canNext ? '#6845EC' : 'rgba(0,0,0,0.25)',
+                border: `1.5px solid ${canNext ? accent : 'rgba(0,0,0,0.15)'}`,
+                color: canNext ? accent : 'rgba(0,0,0,0.25)',
                 background: 'transparent',
                 cursor: canNext ? 'pointer' : 'default',
               }}
@@ -1075,7 +1538,7 @@ function Portfolio() {
           className="flex gap-4"
           style={{ paddingLeft: 'max(1rem, calc(50vw - 42rem))', paddingRight: '1rem' }}
         >
-          {PORTFOLIO_ITEMS.map(item => (
+          {(mode === 'preview' ? PREVIEW_PORTFOLIO_ITEMS : PORTFOLIO_ITEMS).map(item => (
             <div key={item.id} className="shrink-0">
               <PortfolioCard item={item} />
             </div>
@@ -1085,13 +1548,13 @@ function Portfolio() {
 
       {/* Dots */}
       <div className="mt-8 flex justify-center gap-2">
-        {PORTFOLIO_ITEMS.map((_, i) => (
+        {(mode === 'preview' ? PREVIEW_PORTFOLIO_ITEMS : PORTFOLIO_ITEMS).map((_, i) => (
           <button
             key={i}
             onClick={() => emblaApi?.scrollTo(i)}
             style={{
               width: '8px', height: '8px', borderRadius: '50%', border: 'none',
-              background: current === i ? '#6845EC' : 'rgba(104,69,236,0.2)',
+              background: current === i ? accent : `${accent}33`,
               cursor: 'pointer', padding: 0, transition: 'background 0.25s',
             }}
           />
@@ -1272,12 +1735,13 @@ const HOW_STEPS = [
   },
 ]
 
-function HowItWorks() {
+function HowItWorks({ mode, accent }) {
+  const isPreview = mode === 'preview'
+  const steps = isPreview ? PREVIEW_HOW_STEPS : HOW_STEPS
   return (
     <section className="py-28" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
 
-        {/* Header */}
         <motion.div
           className="text-center mb-24"
           initial={{ opacity: 0, y: 24 }}
@@ -1291,27 +1755,31 @@ function HowItWorks() {
           </h2>
         </motion.div>
 
-        {/* Steps */}
         <div className="flex flex-col gap-32">
-          {HOW_STEPS.map(({ n, title, short, paras, fileLogos, Visual, flip }) => (
+          {steps.map(({ n, title, short, paras, fileLogos, Visual, flip }) => (
             <div key={n} className={`grid grid-cols-1 md:grid-cols-2 gap-16 items-center ${flip ? 'md:[direction:rtl]' : ''}`}>
 
-              {/* Visual */}
-              <motion.div
-                style={{ direction: 'ltr' }}
-                {...slideIn(flip ? 'right' : 'left')}
-              >
-                <Visual />
+              <motion.div style={{ direction: 'ltr' }} {...slideIn(flip ? 'right' : 'left')}>
+                {Visual ? <Visual /> : (
+                  <div
+                    className="relative w-full rounded-3xl overflow-hidden flex items-center justify-center p-10"
+                    style={{ aspectRatio: '4/3', background: isPreview ? 'linear-gradient(135deg, #e8fff0 0%, #f0f7ff 100%)' : 'linear-gradient(135deg, #f0edff 0%, #e8f4ff 100%)' }}
+                  >
+                    <div className="absolute w-48 h-48 rounded-full" style={{ background: isPreview ? 'rgba(3,166,60,0.12)' : 'rgba(104,69,236,0.12)', top: '-40px', right: '-40px' }} />
+                    <div className="flex items-center justify-center w-20 h-20 rounded-full" style={{ background: isPreview ? 'rgba(3,166,60,0.15)' : 'rgba(104,69,236,0.12)' }}>
+                      <span style={{ fontSize: '2rem' }}>{n === '01' ? '📐' : n === '02' ? '🎨' : '✅'}</span>
+                    </div>
+                  </div>
+                )}
               </motion.div>
 
-              {/* Text */}
               <motion.div
                 className="flex flex-col gap-6"
                 style={{ direction: 'ltr' }}
                 {...slideIn(flip ? 'left' : 'right', 130)}
               >
                 <h3 className="font-sans font-bold" style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', color: '#111827', letterSpacing: '-0.05em', lineHeight: 1.1 }}>
-                  <span style={{ color: 'rgba(104,69,236,0.35)' }}>{n}</span><span style={{ marginLeft: '0.4em' }}>{title}</span>
+                  <span style={{ color: `${accent}55` }}>{n}</span><span style={{ marginLeft: '0.4em' }}>{title}</span>
                 </h3>
 
                 <p className="font-sans font-medium" style={{ fontSize: '1.15rem', color: '#111827', letterSpacing: '-0.03em', lineHeight: 1.6 }}>
@@ -1412,67 +1880,46 @@ const TESTIMONIALS = [
   },
 ]
 
-const tcol1 = TESTIMONIALS.slice(0, 3)
-const tcol2 = TESTIMONIALS.slice(3, 6)
-const tcol3 = TESTIMONIALS.slice(6, 9)
 
-function TestimonialBannerJulie() {
+function TestimonialBannerJulie({ mode, accent }) {
+  const isPreview = mode === 'preview'
   return (
     <section style={{ background: '#07070F' }} className="py-16 px-6">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-14">
-        {/* Photo + identité */}
         <div className="flex-shrink-0 flex flex-col items-center gap-3 text-center">
-          <div
-            className="overflow-hidden rounded-2xl"
-            style={{ width: 140, height: 160, flexShrink: 0 }}
-          >
-            <img
-              src="/Julie.png"
-              alt="Julie Martin"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
-            />
+          <div className="overflow-hidden rounded-2xl" style={{ width: 140, height: 160, flexShrink: 0 }}>
+            {isPreview ? (
+              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #0a2a14, #1a4a25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '3rem' }}>📐</span>
+              </div>
+            ) : (
+              <img src="/Julie.png" alt="Julie Martin" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+            )}
           </div>
           <div>
-            <p
-              className="font-sans font-bold"
-              style={{ color: '#fff', fontSize: '1.15rem', letterSpacing: '-0.03em', lineHeight: 1.3 }}
-            >
-              Julie Martin
+            <p className="font-sans font-bold" style={{ color: '#fff', fontSize: '1.15rem', letterSpacing: '-0.03em', lineHeight: 1.3 }}>
+              {isPreview ? 'Sophie Renard' : 'Julie Martin'}
             </p>
-            <p
-              className="font-sans"
-              style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', letterSpacing: '-0.02em' }}
-            >
-              Airbnb Host
+            <p className="font-sans" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', letterSpacing: '-0.02em' }}>
+              {isPreview ? 'Sales Director, Nexus Immobilier' : 'Airbnb Host'}
             </p>
           </div>
         </div>
 
-        {/* Séparateur vertical */}
-        <div
-          className="hidden md:block flex-shrink-0"
-          style={{ width: 1, height: 120, background: 'rgba(255,255,255,0.12)' }}
-        />
+        <div className="hidden md:block flex-shrink-0" style={{ width: 1, height: 120, background: 'rgba(255,255,255,0.12)' }} />
 
-        {/* Citation */}
         <blockquote className="relative">
           <span
             aria-hidden="true"
             className="font-display absolute"
-            style={{ top: '-0.5rem', left: '-0.2rem', fontSize: '4rem', color: '#6845EC', lineHeight: 1, opacity: 0.6 }}
+            style={{ top: '-0.5rem', left: '-0.2rem', fontSize: '4rem', color: accent, lineHeight: 1, opacity: 0.6 }}
           >
             "
           </span>
-          <p
-            className="font-sans pl-8"
-            style={{
-              fontSize: 'clamp(1.1rem, 1.8vw, 1.45rem)',
-              color: '#ffffff',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.65,
-            }}
-          >
-            I wasn’t expecting such a difference. After publishing the video, my property quickly became one of the most viewed and highlighted listings in my area. The visibility and interest noticeably increased. Fast, clean, and highly effective.
+          <p className="font-sans pl-8" style={{ fontSize: 'clamp(1.1rem, 1.8vw, 1.45rem)', color: '#ffffff', letterSpacing: '-0.03em', lineHeight: 1.65 }}>
+            {isPreview
+              ? "Buyers kept asking if the interior photos were real — they had no idea the building wasn't finished yet. That's how good these renders are. We pre-sold the entire first floor in under two weeks."
+              : "I wasn't expecting such a difference. After publishing the video, my property quickly became one of the most viewed and highlighted listings in my area. The visibility and interest noticeably increased. Fast, clean, and highly effective."}
           </p>
         </blockquote>
       </div>
@@ -1480,7 +1927,12 @@ function TestimonialBannerJulie() {
   )
 }
 
-function Testimonials() {
+function Testimonials({ mode, accent }) {
+  const isPreview = mode === 'preview'
+  const testimonials = isPreview ? PREVIEW_TESTIMONIALS : TESTIMONIALS
+  const col1 = testimonials.slice(0, 3)
+  const col2 = testimonials.slice(3, 6)
+  const col3 = testimonials.slice(6, 9)
   return (
     <section className="pt-28 pb-28 relative overflow-hidden" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
@@ -1495,7 +1947,9 @@ function Testimonials() {
             What Our Clients Say
           </h2>
           <p className="font-sans text-base" style={{ color: 'rgba(17,24,39,0.5)', letterSpacing: '-0.02em' }}>
-            Real feedback from property owners<br />who got real results
+            {isPreview
+              ? <>Real feedback from developers & architects<br />who sold off-plan with 3D previews</>
+              : <>Real feedback from property owners<br />who got real results</>}
           </p>
         </motion.div>
 
@@ -1508,9 +1962,9 @@ function Testimonials() {
             overflow: 'hidden',
           }}
         >
-          <TestimonialsColumn testimonials={tcol1} duration={18} />
-          <TestimonialsColumn testimonials={tcol2} duration={22} className="hidden md:block" />
-          <TestimonialsColumn testimonials={tcol3} duration={20} className="hidden lg:block" />
+          <TestimonialsColumn testimonials={col1} duration={18} />
+          <TestimonialsColumn testimonials={col2} duration={22} className="hidden md:block" />
+          <TestimonialsColumn testimonials={col3} duration={20} className="hidden lg:block" />
         </div>
       </div>
     </section>
@@ -1599,21 +2053,21 @@ const PLANS = [
   },
 ]
 
-function PricingCard({ plan, highlight }) {
+function PricingCard({ plan, highlight, accent = '#6845EC' }) {
   const [btnHovered, setBtnHovered] = useState(false)
   const hl = highlight
 
   const btnStyle = hl
     ? {
-      background: btnHovered ? '#5a38d4' : '#6845EC',
+      background: accent,
       color: '#FFFFFF',
-      border: '2px solid #6845EC',
-      boxShadow: '0 6px 24px rgba(104,69,236,0.3)',
+      border: `2px solid ${accent}`,
+      boxShadow: `0 6px 24px ${accent}50`,
     }
     : {
-      background: btnHovered ? '#6845EC' : '#FFFFFF',
-      color: btnHovered ? '#FFFFFF' : '#6845EC',
-      border: '2px solid #6845EC',
+      background: btnHovered ? accent : '#FFFFFF',
+      color: btnHovered ? '#FFFFFF' : accent,
+      border: `2px solid ${accent}`,
     }
 
   return (
@@ -1621,16 +2075,15 @@ function PricingCard({ plan, highlight }) {
       className="rounded-2xl p-8 h-full flex flex-col relative"
       style={{
         background: '#FFFFFF',
-        border: hl ? '2px solid #6845EC' : '1px solid rgba(0,0,0,0.08)',
-        boxShadow: hl ? '0 8px 40px rgba(104,69,236,0.15)' : '0 2px 16px rgba(0,0,0,0.05)',
+        border: hl ? `2px solid ${accent}` : '1px solid rgba(0,0,0,0.08)',
+        boxShadow: hl ? `0 8px 40px ${accent}25` : '0 2px 16px rgba(0,0,0,0.05)',
       }}
     >
-      {/* MOST POPULAR badge */}
       {hl && (
         <div className="absolute -top-4 left-1/2" style={{ transform: 'translateX(-50%)' }}>
           <span
             className="font-sans font-bold px-5 py-1.5 rounded-full uppercase tracking-widest whitespace-nowrap"
-            style={{ background: '#6845EC', color: '#fff', fontSize: '0.65rem' }}
+            style={{ background: accent, color: '#fff', fontSize: '0.65rem' }}
           >
             Most Popular
           </span>
@@ -1667,7 +2120,7 @@ function PricingCard({ plan, highlight }) {
             >{plan.price}</span>
             <span
               className="font-display tracking-wide leading-none"
-              style={{ fontSize: '2.2rem', color: '#6845EC' }}
+              style={{ fontSize: '2.2rem', color: accent }}
             >{plan.priceAlt}</span>
             {/* Row 2 — descriptions, same y-start */}
             <p className="font-sans" style={{ color: 'rgba(17,24,39,0.45)', fontSize: '0.75rem', lineHeight: 1.55, marginTop: '5px' }}>
@@ -1714,7 +2167,7 @@ function PricingCard({ plan, highlight }) {
         onMouseEnter={() => setBtnHovered(true)}
         onMouseLeave={() => setBtnHovered(false)}
       >
-        Order now →
+        {plan.cta || 'Order now'} →
       </a>
 
       {/* 5. Money-back guarantee with logo */}
@@ -1730,7 +2183,7 @@ function PricingCard({ plan, highlight }) {
         >
           <img src="/logo-guarantee.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
-        <p className="font-sans font-semibold" style={{ color: '#6845EC', fontSize: '0.8rem' }}>
+        <p className="font-sans font-semibold" style={{ color: accent, fontSize: '0.8rem' }}>
           100% money-Back Guarantee
         </p>
       </div>
@@ -1744,17 +2197,15 @@ function PricingCard({ plan, highlight }) {
         <ul className="space-y-3" style={{ minHeight: '340px' }}>
           {plan.features.map(f => (
             <li key={f} className="flex items-start gap-3">
-              <Check size={16} className="shrink-0 mt-0.5" style={{ color: '#6845EC' }} strokeWidth={2.5} />
+              <Check size={16} className="shrink-0 mt-0.5" style={{ color: accent }} strokeWidth={2.5} />
               <span className="font-sans leading-snug" style={{ color: '#111827', fontSize: '1rem' }}>{f}</span>
             </li>
           ))}
         </ul>
 
-        {/* 7. Options / Add-ons */}
         {plan.options.length > 0 && (
           <div className="mt-6">
             <div className="mb-4" style={{ height: '1px', background: 'rgba(0,0,0,0.08)' }} />
-            {/* Title with SVG 2-wave underline */}
             <div className="mb-4">
               <p
                 style={{
@@ -1767,7 +2218,7 @@ function PricingCard({ plan, highlight }) {
                 }}
               >Optional Add-ons</p>
               <svg viewBox="0 0 200 10" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '6px', marginTop: '4px' }}>
-                <path d="M0,5 Q25,2 50,5 Q75,8 100,5 Q125,2 150,5 Q175,8 200,5" stroke="#6845EC" strokeWidth="1.8" fill="none" opacity="0.65" />
+                <path d="M0,5 Q25,2 50,5 Q75,8 100,5 Q125,2 150,5 Q175,8 200,5" stroke={accent} strokeWidth="1.8" fill="none" opacity="0.65" />
               </svg>
             </div>
             <ul className="space-y-4">
@@ -1775,17 +2226,14 @@ function PricingCard({ plan, highlight }) {
                 <li key={o.name} className="flex items-start gap-3">
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold"
-                    style={{ background: 'rgba(104,69,236,0.1)', color: '#6845EC', fontSize: '1rem' }}
+                    style={{ background: `${accent}1A`, color: accent, fontSize: '1rem' }}
                   >+</div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-sans font-bold leading-snug" style={{ color: '#111827', fontSize: '1rem' }}>
                         {o.name}
                       </p>
-                      <span
-                        className="font-sans font-bold"
-                        style={{ color: '#6845EC', fontSize: '0.95rem' }}
-                      >{o.price}</span>
+                      <span className="font-sans font-bold" style={{ color: accent, fontSize: '0.95rem' }}>{o.price}</span>
                     </div>
                     <p className="font-sans leading-snug mt-0.5" style={{ color: 'rgba(17,24,39,0.5)', fontSize: '0.875rem' }}>
                       {o.desc}
@@ -1801,7 +2249,9 @@ function PricingCard({ plan, highlight }) {
   )
 }
 
-function Pricing() {
+function Pricing({ mode, accent }) {
+  const isPreview = mode === 'preview'
+  const plans = isPreview ? PREVIEW_PLANS : PLANS
   return (
     <section id="pricing" className="pt-28 pb-6" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6">
@@ -1811,14 +2261,16 @@ function Pricing() {
             SIMPLE,<br />TRANSPARENT PRICING
           </h2>
           <p className="font-sans max-w-md mx-auto" style={{ color: 'rgba(17,24,39,0.45)' }}>
-            No hidden fees. Every package includes unlimited revisions until you're satisfied.
+            {isPreview
+              ? 'No hidden fees. Every package includes revisions until your visuals are perfect.'
+              : "No hidden fees. Every package includes unlimited revisions until you're satisfied."}
           </p>
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
-          {PLANS.map((plan, i) => (
+          {plans.map((plan, i) => (
             <FadeIn key={plan.name} delay={i * 100} className="h-full">
-              <PricingCard plan={plan} highlight={plan.highlight} />
+              <PricingCard plan={plan} highlight={plan.highlight} accent={accent} />
             </FadeIn>
           ))}
         </div>
@@ -1852,7 +2304,8 @@ const BRAND_LOGOS = [
   { icon: '▲', name: 'Bloosh' },
 ]
 
-function TrustBar({ onOpenBooking }) {
+function TrustBar({ onOpenBooking, mode, accent }) {
+  const isPreview = mode === 'preview'
   return (
     <section className="pt-6 pb-16" style={{ background: '#FFFFFF' }}>
       <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
@@ -1863,24 +2316,25 @@ function TrustBar({ onOpenBooking }) {
           className="inline-flex items-center justify-center gap-2 font-sans font-semibold text-lg transition-all w-full"
           style={{
             padding: '22px 40px',
-            border: '1.5px solid #6845EC',
-            color: '#6845EC',
+            border: `1.5px solid ${accent}`,
+            color: accent,
             background: '#fff',
             cursor: 'pointer',
             letterSpacing: '-0.03em',
             borderRadius: 12,
           }}
         >
-          Book a Call →
+          {isPreview ? 'Request a Preview →' : 'Book a Call →'}
         </button>
 
-        {/* Guarantee */}
         <div className="text-center">
           <p className="font-sans font-bold text-xl" style={{ color: '#111827', letterSpacing: '-0.04em' }}>
             100% Risk-Free Satisfaction Guarantee
           </p>
           <p className="font-sans mt-1 max-w-lg mx-auto" style={{ fontSize: 16, color: 'rgba(17,24,39,0.45)', letterSpacing: '-0.02em', lineHeight: 1.6 }}>
-            We're committed to your success. If you're not completely satisfied with your video,<br />we'll keep refining it until it meets your expectations, or provide a full refund.
+            {isPreview
+              ? <>We're committed to your vision. If you're not completely satisfied with your 3D visuals,<br />we'll keep refining them until they're perfect, or provide a full refund.</>
+              : <>We're committed to your success. If you're not completely satisfied with your video,<br />we'll keep refining it until it meets your expectations, or provide a full refund.</>}
           </p>
         </div>
 
@@ -1967,13 +2421,16 @@ function TrustBar({ onOpenBooking }) {
 /* ─────────────────────────────────────────
    FINAL CTA
 ───────────────────────────────────────── */
-function FinalCTA() {
+function FinalCTA({ mode }) {
+  const isPreview = mode === 'preview'
   return (
     <section id="contact" className="py-28 relative overflow-hidden" style={{ background: '#2D4077' }}>
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(104,69,236,0.25) 0%, transparent 65%)',
+          background: isPreview
+            ? 'radial-gradient(ellipse at 50% 50%, rgba(3,166,60,0.22) 0%, transparent 65%)'
+            : 'radial-gradient(ellipse at 50% 50%, rgba(104,69,236,0.25) 0%, transparent 65%)',
         }}
       />
       <div className="absolute inset-0 grid-bg pointer-events-none" />
@@ -1986,21 +2443,26 @@ function FinalCTA() {
         </FadeIn>
         <FadeIn delay={80}>
           <h2 className="font-display text-[clamp(3rem,8vw,6rem)] tracking-wide leading-[0.92] mb-6" style={{ color: '#FFFFFF', letterSpacing: '-0.05em' }}>
-            READY TO UPGRADE<br />
-            <span style={{ color: '#F2EAE4' }}>YOUR VIDEOS?</span>
+            {isPreview ? (
+              <>BRING YOUR PROJECT<br /><span style={{ color: '#F2EAE4' }}>TO LIFE.</span></>
+            ) : (
+              <>READY TO UPGRADE<br /><span style={{ color: '#F2EAE4' }}>YOUR VIDEOS?</span></>
+            )}
           </h2>
         </FadeIn>
         <FadeIn delay={160}>
           <p className="font-sans text-lg max-w-lg mx-auto mb-10 leading-relaxed" style={{ color: 'rgba(250,250,250,0.55)' }}>
-            Join 100+ creators and brands getting premium edits delivered in 24h.
-            First project? We'll do a{' '}
-            <span style={{ color: '#F2EAE4' }}>free sample edit</span>.
+            {isPreview ? (
+              <>Join 500+ developers and architects using 3D previews to sell off-plan. First project? We'll do a <span style={{ color: '#F2EAE4' }}>free sample render</span>.</>
+            ) : (
+              <>Join 100+ creators and brands getting premium edits delivered in 24h. First project? We'll do a <span style={{ color: '#F2EAE4' }}>free sample edit</span>.</>
+            )}
           </p>
         </FadeIn>
         <FadeIn delay={240}>
           <div className="flex flex-wrap gap-4 justify-center">
             <a href="mailto:hello@shortcut.video" className="btn-primary text-base px-8 py-4">
-              Book a free call <ArrowRight size={16} />
+              {isPreview ? 'Request a free sample →' : 'Book a free call'} <ArrowRight size={16} />
             </a>
             <a
               href="mailto:hello@shortcut.video"
@@ -2018,7 +2480,10 @@ function FinalCTA() {
         </FadeIn>
 
         <FadeIn delay={320} className="mt-12 flex items-center justify-center gap-8">
-          {['No contracts', 'Free revision', 'Fast delivery'].map(item => (
+          {(isPreview
+            ? ['No contracts', 'Free revision', '72h delivery']
+            : ['No contracts', 'Free revision', 'Fast delivery']
+          ).map(item => (
             <div key={item} className="flex items-center gap-2">
               <Check size={14} style={{ color: '#F2EAE4' }} strokeWidth={2.5} />
               <span className="font-sans text-sm" style={{ color: 'rgba(250,250,250,0.4)' }}>{item}</span>
@@ -2033,7 +2498,8 @@ function FinalCTA() {
 /* ─────────────────────────────────────────
    FOOTER
 ───────────────────────────────────────── */
-function Footer({ onOpenBooking }) {
+function Footer({ onOpenBooking, mode, accent }) {
+  const isPreview = mode === 'preview'
   return (
     <footer style={{ background: '#FFFFFF', borderTop: '1px solid rgba(0,0,0,0.07)' }}>
       <div className="max-w-7xl mx-auto px-6 py-14">
@@ -2043,16 +2509,19 @@ function Footer({ onOpenBooking }) {
             <div className="flex items-center gap-2.5 mb-4">
               <div
                 className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background: '#6845EC' }}
+                style={{ background: accent }}
               >
                 <Zap size={14} className="text-white fill-white" />
               </div>
               <span className="font-heading font-bold text-lg tracking-tight" style={{ color: '#111827' }}>
-                shortcut<span style={{ color: '#6845EC' }}>.</span>
+                shortcut<span style={{ color: accent }}>.</span>
+                {isPreview && <span className="font-sans font-normal text-sm ml-1" style={{ color: 'rgba(17,24,39,0.35)' }}>preview</span>}
               </span>
             </div>
             <p className="font-sans text-sm leading-relaxed max-w-xs mb-6" style={{ color: 'rgba(17,24,39,0.4)' }}>
-              High-performing videos for creators, brands, and real estate professionals. Delivered fast.
+              {isPreview
+                ? 'Ultra-realistic 3D renders, walkthroughs, and cinematic previews for real estate projects. Delivered in 72 hours.'
+                : 'High-performing videos for creators, brands, and real estate professionals. Delivered fast.'}
             </p>
             <div className="flex items-center gap-3">
               {[
@@ -2154,6 +2623,19 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false)
   const [authDefaultView, setAuthDefaultView] = useState('signin')
   const [bookingOpen, setBookingOpen] = useState(false)
+  const [mode, setMode] = useState('shortcut')
+  const [fading, setFading] = useState(false)
+
+  const accent = mode === 'preview' ? '#03A63C' : '#6845EC'
+
+  function switchMode(newMode) {
+    if (newMode === mode) return
+    setFading(true)
+    setTimeout(() => {
+      setMode(newMode)
+      setFading(false)
+    }, 280)
+  }
 
   function openAuth(view = 'signin') {
     setAuthDefaultView(view)
@@ -2169,6 +2651,8 @@ export default function App() {
     },
   })
 
+  const shared = { mode, accent }
+
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
       <div
@@ -2178,26 +2662,37 @@ export default function App() {
           opacity: 0, pointerEvents: 'none', zIndex: 9999,
         }}
       />
+      {/* Mode-switch fade overlay */}
+      <div
+        style={{
+          position: 'fixed', inset: 0, background: '#FFFFFF',
+          opacity: fading ? 1 : 0,
+          pointerEvents: fading ? 'all' : 'none',
+          zIndex: 9998,
+          transition: 'opacity 0.28s ease',
+        }}
+      />
       <AuthOverlay open={authOpen} onClose={() => setAuthOpen(false)} defaultView={authDefaultView} />
       <BookingOverlay
         open={bookingOpen}
         onClose={() => setBookingOpen(false)}
         src="https://cal.com/fantin-slmlin/discovery-call?embed=true"
       />
-      <Hero user={user} onOpenAuth={openAuth} onOpenBooking={() => setBookingOpen(true)} />
-      <Targets />
-      <Services />
-      <TestimonialBanner />
-      <ValueProps />
+      <Hero user={user} onOpenAuth={openAuth} onOpenBooking={() => setBookingOpen(true)} {...shared} onSwitchMode={switchMode} />
+      <Targets {...shared} />
+      <Services {...shared} />
+      {mode === 'preview' && <Viewer3DSection accent={accent} />}
+      <TestimonialBanner {...shared} />
+      <ValueProps {...shared} />
       <ZoomParallaxSection />
-      <Portfolio />
-      <HowItWorks />
-      <TestimonialBannerJulie />
-      <Testimonials />
-      <Pricing />
-      <TrustBar onOpenBooking={() => setBookingOpen(true)} />
-      <FinalCTA />
-      <Footer onOpenBooking={() => setBookingOpen(true)} />
+      <Portfolio {...shared} />
+      <HowItWorks {...shared} />
+      <TestimonialBannerJulie {...shared} />
+      <Testimonials {...shared} />
+      <Pricing {...shared} />
+      <TrustBar onOpenBooking={() => setBookingOpen(true)} {...shared} />
+      <FinalCTA {...shared} />
+      <Footer onOpenBooking={() => setBookingOpen(true)} {...shared} />
     </div>
   )
 }
