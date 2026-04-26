@@ -484,21 +484,31 @@ function Hero({ user, onOpenAuth, onOpenBooking, mode, accent, onSwitchMode }) {
           className="hidden md:flex items-center gap-3"
         >
           {user ? (
-            <button
-              onClick={() => onOpenAuth('dashboard')}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-            >
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '50%', background: accent,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontFamily: 'DM Sans', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '-0.02em',
-              }}>
-                {(user.user_metadata?.full_name || user.email || 'U').slice(0, 2).toUpperCase()}
-              </div>
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontFamily: 'DM Sans', fontSize: '0.85rem', letterSpacing: '-0.02em' }}>
-                {user.user_metadata?.full_name?.split(' ')[0] || user.email}
-              </span>
-            </button>
+            <>
+              <button
+                onClick={() => onOpenAuth('dashboard')}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%', background: accent,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontFamily: 'DM Sans', fontWeight: 700, fontSize: '0.78rem', letterSpacing: '-0.02em',
+                }}>
+                  {(user.user_metadata?.full_name || user.email || 'U').slice(0, 2).toUpperCase()}
+                </div>
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontFamily: 'DM Sans', fontSize: '0.85rem', letterSpacing: '-0.02em' }}>
+                  {user.user_metadata?.full_name?.split(' ')[0] || user.email}
+                </span>
+              </button>
+              {user.app_metadata?.is_admin && (
+                <a
+                  href="/admin"
+                  style={{ color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '-0.02em', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 100, padding: '4px 12px' }}
+                >
+                  Admin
+                </a>
+              )}
+            </>
           ) : (
             <button
               onClick={() => onOpenAuth('signin')}
