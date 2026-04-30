@@ -1,10 +1,17 @@
 import { Suspense, useState, useRef, useCallback } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import { useViewer } from './useViewer'
 import { CameraController } from './CameraController'
 import { RoomNav } from './RoomNav'
 import { WalkControls } from './WalkControls'
+
+// Always tracks the live camera — populated every frame regardless of mode
+function CameraTracker({ cameraRef }) {
+  const { camera } = useThree()
+  useFrame(() => { cameraRef.current = camera })
+  return null
+}
 
 function Model({ url }) {
   if (!url) return null
@@ -44,19 +51,30 @@ export function Viewer3D({
   const { activeRoom, activeRoomData, flyToRoom, clearActiveRoom, controlsRef, targetPos, targetLookAt, animating } = useViewer()
   const [walkMode, setWalkMode] = useState(false)
   const walkCameraRef = useRef(null)
+  const liveCameraRef = useRef(null) // always has the live Three.js camera
 
-  // Called on any user-initiated camera move — hides the room info card
-  const handleUserMove = useCallback(() => {
-    clearActiveRoom()
-  }, [clearActiveRoom])
+  const handleUserMove = useCallback(() => { clearActiveRoom() }, [clearActiveRoom])
 
   function handleCapture() {
     if (!onSavePosition) return
-    if (walkMode && walkCameraRef.current) {
-      const { position, target } = walkCameraRef.current
-      onSavePosition({ camera_position: position, camera_target: target })
+
+    if (walkMode) {
+      const cam = liveCameraRef.current
+      if (!cam) return
+      // getWorldDirection returns a unit vector in the direction the camera is facing
+      const fwd = cam.getWorldDirection(cam.position.clone())
+      onSavePosition({
+        camera_position: [+cam.position.x.toFixed(3), +cam.position.y.toFixed(3), +cam.position.z.toFixed(3)],
+        camera_target: [
+          +(cam.position.x + fwd.x * 2).toFixed(3),
+          +(cam.position.y + fwd.y * 2).toFixed(3),
+          +(cam.position.z + fwd.z * 2).toFixed(3),
+        ],
+      })
       return
     }
+
+    // Orbit mode: read from OrbitControls
     if (!controlsRef.current) return
     const cam = controlsRef.current.object
     onSavePosition({
@@ -97,6 +115,7 @@ export function Viewer3D({
             animating={animating}
           />
 
+          <CameraTracker cameraRef={liveCameraRef} />
           <WalkControls enabled={walkMode} cameraRef={walkCameraRef} onUserMove={handleUserMove} />
         </Canvas>
       </Suspense>
