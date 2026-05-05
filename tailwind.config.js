@@ -17,7 +17,7 @@ export default {
       keyframes: {
         marquee: {
           from: { transform: 'translateX(0)' },
-          to: { transform: 'translateX(-50%)' },
+          to: { transform: 'translateX(-33.333%)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
